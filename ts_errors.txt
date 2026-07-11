@@ -1,0 +1,2 @@
+src/components/BootstrapWizard.tsx(44,10): error TS2339: Property 'setState' does not exist on type 'WizardErrorBoundary'.
+src/components/BootstrapWizard.tsx(70,17): error TS2339: Property 'props' does not exist on type 'WizardErrorBoundary'.
