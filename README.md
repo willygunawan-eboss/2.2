@@ -1,20 +1,37 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Deployment Guide
 
-# Run and deploy your AI Studio app
+## Prerequisites
+- Ubuntu Server 20.04 or 22.04 LTS
+- Node.js (v20+)
+- PM2 installed globally (`npm install -g pm2`)
 
-This contains everything you need to run your app locally.
+## Step-by-Step
+We have provided automated scripts for deployment, rollback, and recovery.
 
-View your app in AI Studio: https://ai.studio/apps/250df529-abe1-4972-84b6-3fe359a22298
+### 1. Deployment
+To deploy the latest changes from the master branch, simply run:
+```bash
+./scripts/deploy.sh
+```
+This script will automatically:
+1. Fetch and pull the latest changes from GitHub (`git reset --hard`).
+2. Run `npm install` for dependencies.
+3. Apply database migrations (`npx drizzle-kit push`).
+4. Build the application (`npm run build`).
+5. Restart PM2 on Port 3010.
+6. Run a health check against `/api/system/health`.
 
-## Run Locally
+### 2. Rollback
+If a deployment fails and you need to revert to the previous state:
+```bash
+./scripts/rollback.sh
+```
 
-**Prerequisites:**  Node.js
+### 3. Database Fix (Corrupt DB)
+If you experience a malformed SQLite database, you can reset it:
+```bash
+./scripts/fix-db.sh
+```
 
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Backup Strategy
+Make sure to regularly backup the `data/` directory. You can set up a cron job to archive it to a remote storage.
