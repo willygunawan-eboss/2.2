@@ -64,7 +64,6 @@ app.use(cookieParser());
 
 const authMiddleware = async (req, res, next) => {
   if (['/api/auth/login', '/api/auth/refresh', '/api/auth/logout', '/api/health', '/api/system/health'].includes(req.path)) return next();
-  console.log('Path:', req.path);
   if (['/api/auth/login', '/api/auth/refresh', '/api/auth/logout'].includes(req.path) || req.path.startsWith('/api/health') || req.path.startsWith('/api/system/health')) return next();
   if (!req.path.startsWith('/api/')) return next();
 
@@ -104,29 +103,6 @@ const authMiddleware = async (req, res, next) => {
 };
 app.use(authMiddleware);
 
-app.get('/api/debug/me', async (req, res) => {
-  if (process.env.NODE_ENV !== 'development') {
-    return res.status(403).json({ success: false, message: 'Forbidden' });
-  }
-  const user = (req as any).user;
-  if (!user) return res.status(401).json({ success: false, message: 'Not authenticated' });
-  
-  const permissions = getUserPermissions(user.id);
-  const roles = getUserRoles(user.id);
-  const modules = [...new Set(permissions.map((p: string) => p.split('_')[1]?.toLowerCase()).filter(Boolean))];
-  const employee = await db.select().from(schema.employees).where(eq(schema.employees.userId, user.id));
-  
-  res.json({
-    success: true,
-    user,
-    employee: employee[0] || null,
-    role: roles.includes('SUPER_ADMIN') ? 'SUPER_ADMIN' : roles[0] || user.role,
-    permissions,
-    modules,
-    menu: [],
-    accessibleRoutes: []
-  });
-});
 
 
 

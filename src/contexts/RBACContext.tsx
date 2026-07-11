@@ -33,6 +33,11 @@ export function RBACProvider({ children }: { children: React.ReactNode }) {
     try {
       const res = await fetch('/api/rbac/context');
       if (res.ok) {
+        const contentType = res.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          console.warn('RBAC context returned non-JSON:', await res.text());
+          return;
+        }
         const json = await res.json();
         if (json.success) {
           setRbac(json.data);
