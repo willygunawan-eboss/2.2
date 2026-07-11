@@ -1,38 +1,28 @@
-# QA Report
-Date: Sat Jul 11 11:24:45 AM UTC 2026
-## Lint Report
-```
-
-> react-example@0.0.0 lint
-> tsc --noEmit
-
-```
-## Build Report
-```
 
 > react-example@0.0.0 build
 > vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs
 
 vite v6.4.3 building for production...
 transforming...
-✓ 2937 modules transformed.
+✓ 2531 modules transformed.
 rendering chunks...
 computing gzip size...
 dist/index.html                              0.47 kB │ gzip:   0.30 kB
-dist/assets/index-DdDiIxod.css              64.77 kB │ gzip:  11.26 kB
+dist/assets/index-B6qE-oSS.css              65.29 kB │ gzip:  11.35 kB
 dist/assets/purify.es-Csrj9YNg.js           28.14 kB │ gzip:  10.69 kB
-dist/assets/index.es-CR47FJW1.js           159.59 kB │ gzip:  53.51 kB
+dist/assets/index.es-B4nH-RzL.js           159.59 kB │ gzip:  53.51 kB
 dist/assets/html2canvas.esm-B0tyYwQk.js    202.36 kB │ gzip:  48.04 kB
-dist/assets/index-C-J49o4L.js            2,357.56 kB │ gzip: 618.37 kB
+dist/assets/index-nDmfh8AR.js            2,214.07 kB │ gzip: 570.86 kB
 
 (!) Some chunks are larger than 500 kB after minification. Consider:
 - Using dynamic import() to code-split the application
 - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
 - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
-✓ built in 13.12s
+✓ built in 13.79s
+✘ [ERROR] Unexpected "catch"
 
-  dist/server.cjs      240.2kb
-  dist/server.cjs.map  369.4kb
+    server.ts:431:6:
+      431 │     } catch (e) {
+          ╵       ~~~~~
 
-⚡ Done in 37ms
-```
+1 error

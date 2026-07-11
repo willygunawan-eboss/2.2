@@ -302,10 +302,10 @@ export function DashboardView({ onNavigate }: { onNavigate?: (id: any) => void }
                 { name: 'My Info', icon: User },
                 { name: 'Add Employee', icon: UserPlus },
                 { name: 'Employee Transfer', icon: Users },
-                { name: 'Company Settings', icon: Settings },
+                { name: 'ERP Setup Center', icon: Settings },
                 { name: 'Integration', icon: Link }
               ].map((link, i) => (
-                <button key={i} onClick={() => { if (onNavigate) { if (link.name.includes("Employee") || link.name === "My Info") onNavigate("hr"); else onNavigate("settings"); } }} className="flex items-center justify-between p-2.5 hover:bg-slate-50 rounded-lg transition-colors group">
+                <button key={i} onClick={() => { if (onNavigate) { if (link.name.includes("Employee") || link.name === "My Info") onNavigate("hr"); else if (link.name === "ERP Setup Center") onNavigate("setup_center"); else onNavigate("settings"); } }} className="flex items-center justify-between p-2.5 hover:bg-slate-50 rounded-lg transition-colors group">
                   <div className="flex items-center gap-3">
                     <div className="text-slate-400 group-hover:text-blue-600">
                       <link.icon className="w-4 h-4" />

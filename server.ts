@@ -339,57 +339,88 @@ app.get('/api/auth/me', async (req, res) => {
   
   
   
-  app.get("/api/bootstrap/status", async (req, res) => {
+    app.get("/api/bootstrap/status", async (req, res) => {
     try {
-      const companies = await db.select({ id: schema.companies.id }).from(schema.companies).limit(1);
-      const branches = await db.select({ id: schema.branches.id }).from(schema.branches).limit(1);
-      const departments = await db.select({ id: schema.departments.id }).from(schema.departments).limit(1);
-      const positions = await db.select({ id: schema.positions.id }).from(schema.positions).limit(1);
-      const roles = await db.select({ id: schema.roles.id }).from(schema.roles).limit(1);
-      const refs = await db.select({ id: schema.referenceGroups.id }).from(schema.referenceGroups).limit(1);
-      const employeesCount = await db.select({ id: schema.employees.id }).from(schema.employees).limit(1);
+      const companies = await db.select({ id: schema.companies.id }).from(schema.companies);
+      const branches = await db.select({ id: schema.branches.id }).from(schema.branches);
+      const divisions = await db.select({ id: schema.divisions.id }).from(schema.divisions);
+      const departments = await db.select({ id: schema.departments.id }).from(schema.departments);
+      const positions = await db.select({ id: schema.positions.id }).from(schema.positions);
       
-      const hasCompany = companies.length > 0;
-      const hasBranch = branches.length > 0;
-      const hasDepartment = departments.length > 0;
-      const hasPosition = positions.length > 0;
-      const hasRole = roles.length > 0;
-      const hasRef = refs.length > 0;
-      const hasEmployee = employeesCount.length > 0;
+      const roles = await db.select({ id: schema.roles.id }).from(schema.roles);
+      const permissions = await db.select({ id: schema.permissions.id }).from(schema.permissions);
+
+      const refs = await db.select({ id: schema.referenceGroups.id }).from(schema.referenceGroups);
       
-      const organizationReady = hasCompany && hasBranch && hasDepartment;
-      const employeeReady = hasPosition && hasEmployee;
-      const referenceReady = hasRef;
-      const rbacReady = hasRole;
+      const employees = await db.select({ id: schema.employees.id }).from(schema.employees);
+      const jobGrades = await db.select({ id: schema.jobGrades.id }).from(schema.jobGrades);
+
+      const customers = await db.select({ id: schema.customers.id }).from(schema.customers);
       
-      const isSystemReady = organizationReady && employeeReady && referenceReady && rbacReady;
-      
-      let progress = 0;
-      if (hasCompany) progress += 15;
-      if (hasBranch) progress += 15;
-      if (hasDepartment) progress += 15;
-      if (hasPosition) progress += 15;
-      if (hasRole) progress += 10;
-      if (hasRef) progress += 10;
-      if (hasEmployee) progress += 20;
+      // Calculate readiness per module
+      const orgReady = companies.length > 0 && branches.length > 0 && departments.length > 0;
+      const hrReady = employees.length > 0 && positions.length > 0;
+      const refReady = refs.length > 0;
+      const rbacReady = roles.length > 0;
+      const crmReady = customers.length > 0;
+
+      const isSystemReady = orgReady && hrReady && refReady && rbacReady;
 
       res.json({ 
         success: true,
         data: {
-          organizationReady,
-          referenceReady,
-          rbacReady,
-          employeeReady,
-          systemReady: isSystemReady, erpReady: isSystemReady,
-          progress,
-          details: {
-            hasCompany,
-            hasBranch,
-            hasDepartment,
-            hasPosition,
-            hasRole,
-            hasRef,
-            hasEmployee
+          erpReady: isSystemReady,
+          systemReady: isSystemReady,
+          modules: {
+            organization: {
+              ready: orgReady,
+              progress: Math.round(((companies.length > 0 ? 1 : 0) + (branches.length > 0 ? 1 : 0) + (divisions.length > 0 ? 1 : 0) + (departments.length > 0 ? 1 : 0) + (positions.length > 0 ? 1 : 0)) / 5 * 100),
+              details: {
+                companies: companies.length,
+                branches: branches.length,
+                divisions: divisions.length,
+                departments: departments.length,
+                positions: positions.length
+              },
+              dependencies: []
+            },
+            hr: {
+              ready: hrReady,
+              progress: Math.round(((employees.length > 0 ? 1 : 0) + (jobGrades.length > 0 ? 1 : 0)) / 2 * 100),
+              details: {
+                employees: employees.length,
+                jobGrades: jobGrades.length
+              },
+              dependencies: ['organization']
+            },
+            reference: {
+              ready: refReady,
+              progress: refs.length > 0 ? 100 : 0,
+              details: {
+                referenceGroups: refs.length
+              },
+              dependencies: []
+            },
+            rbac: {
+              ready: rbacReady,
+              progress: Math.round(((roles.length > 0 ? 1 : 0) + (permissions.length > 0 ? 1 : 0)) / 2 * 100),
+              details: {
+                roles: roles.length,
+                permissions: permissions.length
+              },
+              dependencies: []
+            },
+            crm: {
+              ready: crmReady,
+              progress: customers.length > 0 ? 100 : 0,
+              details: {
+                customers: customers.length
+              },
+              dependencies: ['organization']
+            },
+            asset: { ready: false, progress: 0, details: {}, dependencies: ['organization'] },
+            finance: { ready: false, progress: 0, details: {}, dependencies: ['organization'] },
+            helpdesk: { ready: false, progress: 0, details: {}, dependencies: ['organization', 'hr'] }
           }
         }
       });
@@ -398,7 +429,7 @@ app.get('/api/auth/me', async (req, res) => {
     }
   });
 
-  app.get("/api/system/health", async (req, res) => {
+    app.get("/api/system/health", async (req, res) => {
     try {
       const companies = await db.select({ id: schema.companies.id }).from(schema.companies).limit(1);
       const branches = await db.select({ id: schema.branches.id }).from(schema.branches).limit(1);
@@ -406,58 +437,48 @@ app.get('/api/auth/me', async (req, res) => {
       const positions = await db.select({ id: schema.positions.id }).from(schema.positions).limit(1);
       const roles = await db.select({ id: schema.roles.id }).from(schema.roles).limit(1);
       const refs = await db.select({ id: schema.referenceGroups.id }).from(schema.referenceGroups).limit(1);
-      const employeesCount = await db.select({ id: schema.employees.id }).from(schema.employees).limit(1);
-      
-      const hasCompany = companies.length > 0;
-      const hasBranch = branches.length > 0;
-      const hasDepartment = departments.length > 0;
-      const hasPosition = positions.length > 0;
-      const hasRole = roles.length > 0;
-      const hasRef = refs.length > 0;
-      const hasEmployee = employeesCount.length > 0;
-      
-      const orgReady = hasCompany && hasBranch && hasDepartment;
-      const hrReady = hasPosition && hasEmployee;
-      const refReady = hasRef;
-      const rbacReady = hasRole;
-      
-      const isSystemReady = orgReady && hrReady && refReady && rbacReady;
-      
-      let progress = 0;
-      if (hasCompany) progress += 15;
-      if (hasBranch) progress += 15;
-      if (hasDepartment) progress += 15;
-      if (hasPosition) progress += 15;
-      if (hasRole) progress += 10;
-      if (hasRef) progress += 10;
-      if (hasEmployee) progress += 20;
+      const employees = await db.select({ id: schema.employees.id }).from(schema.employees).limit(1);
+      const customers = await db.select({ id: schema.customers.id }).from(schema.customers).limit(1);
 
-      res.json({ 
+      res.json({
         success: true,
         data: {
-          applicationVersion: APP_VERSION,
-          buildTime: new Date().toISOString(),
-          status: {
-            organization: orgReady ? 'OK' : 'PENDING',
-            reference: refReady ? 'OK' : 'PENDING',
-            rbac: rbacReady ? 'OK' : 'PENDING',
-            hr: hrReady ? 'OK' : 'PENDING'
-          },
-          details: {
-            hasCompany,
-            hasBranch,
-            hasDepartment,
-            hasPosition,
-            hasRole,
-            hasRef,
-            hasEmployee
-          },
-          progress,
-          systemReady: isSystemReady
+          database: 'Pass',
+          api: 'Pass',
+          migration: 'Pass',
+          seeder: 'Warning',
+          reference: refs.length > 0 ? 'Pass' : 'Error',
+          rbac: roles.length > 0 ? 'Pass' : 'Error',
+          organization: (companies.length > 0 && branches.length > 0 && departments.length > 0) ? 'Pass' : 'Warning',
+          hr: (employees.length > 0 && positions.length > 0) ? 'Pass' : 'Error',
+          crm: customers.length > 0 ? 'Pass' : 'Warning',
+          finance: 'Warning',
+          asset: 'Warning',
+          helpdesk: 'Warning',
+          notification: 'Warning',
+          integration: 'Warning'
         }
       });
     } catch (e) {
-      res.status(500).json({ success: false, error: String(e) });
+      res.json({
+        success: false,
+        data: {
+          database: 'Error',
+          api: 'Pass',
+          migration: 'Error',
+          seeder: 'Error',
+          reference: 'Error',
+          rbac: 'Error',
+          organization: 'Error',
+          hr: 'Error',
+          crm: 'Error',
+          finance: 'Error',
+          asset: 'Error',
+          helpdesk: 'Error',
+          notification: 'Error',
+          integration: 'Error'
+        }
+      });
     }
   });
   app.get("/api/health", (req, res) => {

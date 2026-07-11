@@ -30,7 +30,7 @@ export class GlobalErrorBoundary extends React.Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error("Global System Error:", error, errorInfo);
-    this.setState({
+    (this as any).setState({
       errorInfo,
       logId: `ERR-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
     });
@@ -81,6 +81,6 @@ export class GlobalErrorBoundary extends React.Component<Props, State> {
       );
     }
 
-    return this.props.children;
+    return (this as any).props.children;
   }
 }

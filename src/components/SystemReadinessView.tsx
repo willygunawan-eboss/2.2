@@ -1,69 +1,148 @@
 import React, { useEffect, useState } from 'react';
-import { ShieldCheck, Server, Settings, Users, Building2, Database, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { 
+  Database, Activity, GitBranch, DatabaseBackup, List, 
+  ShieldCheck, Building2, Users, User, CreditCard, 
+  Briefcase, HelpCircle, Bell, Link, CheckCircle2, 
+  AlertTriangle, XCircle, RefreshCcw
+} from 'lucide-react';
 
 export function SystemReadinessView() {
   const [healthData, setHealthData] = useState<any>(null);
-  
+  const [loading, setLoading] = useState(true);
+
+  const fetchHealth = () => {
+    setLoading(true);
+    fetch('/api/system/health')
+      .then(res => res.json())
+      .then(data => {
+        setHealthData(data.data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
+  };
+
   useEffect(() => {
-    fetch('/api/system/health').then(res => res.json()).then(data => setHealthData(data.data));
+    fetchHealth();
   }, []);
 
-  if (!healthData) return <div className="p-8">Loading...</div>;
+  if (loading) {
+    return <div className="flex h-full items-center justify-center p-8"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div></div>;
+  }
 
-  const modules = [
-    { name: 'Organization', icon: Building2, status: healthData.status.organization, score: healthData.status.organization === 'OK' ? 100 : 0 },
-    { name: 'HR Master', icon: Users, status: healthData.status.hr, score: healthData.status.hr === 'OK' ? 100 : 0 },
-    { name: 'RBAC', icon: ShieldCheck, status: healthData.status.rbac, score: healthData.status.rbac === 'OK' ? 100 : 0 },
-    { name: 'Reference', icon: Database, status: healthData.status.reference, score: healthData.status.reference === 'OK' ? 100 : 0 },
-    { name: 'Finance Master', icon: Server, status: 'PENDING', score: 0 },
-    { name: 'CRM Master', icon: Server, status: 'PENDING', score: 0 },
-    { name: 'Inventory Master', icon: Server, status: 'PENDING', score: 0 },
-    { name: 'ITSM Master', icon: Server, status: 'PENDING', score: 0 },
+  const components = [
+    { key: 'database', name: 'Database', icon: Database },
+    { key: 'api', name: 'API Server', icon: Activity },
+    { key: 'migration', name: 'Migration', icon: GitBranch },
+    { key: 'seeder', name: 'Seeder', icon: DatabaseBackup },
+    { key: 'reference', name: 'Reference Engine', icon: List },
+    { key: 'rbac', name: 'RBAC', icon: ShieldCheck },
+    { key: 'organization', name: 'Organization', icon: Building2 },
+    { key: 'hr', name: 'HR', icon: Users },
+    { key: 'crm', name: 'CRM', icon: User },
+    { key: 'finance', name: 'Finance', icon: CreditCard },
+    { key: 'asset', name: 'Asset', icon: Briefcase },
+    { key: 'helpdesk', name: 'Helpdesk', icon: HelpCircle },
+    { key: 'notification', name: 'Notification', icon: Bell },
+    { key: 'integration', name: 'Integration', icon: Link },
   ];
 
+  const getStatusDisplay = (status: string) => {
+    switch(status) {
+      case 'Pass':
+        return <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 text-xs font-bold"><CheckCircle2 className="w-3.5 h-3.5" /> Pass</div>;
+      case 'Warning':
+        return <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-bold"><AlertTriangle className="w-3.5 h-3.5" /> Warning</div>;
+      case 'Error':
+        return <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-rose-50 text-rose-700 text-xs font-bold"><XCircle className="w-3.5 h-3.5" /> Error</div>;
+      default:
+        return <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 text-slate-500 text-xs font-bold">Unknown</div>;
+    }
+  };
+
+  const statusCounts = {
+    pass: Object.values(healthData || {}).filter(s => s === 'Pass').length,
+    warning: Object.values(healthData || {}).filter(s => s === 'Warning').length,
+    error: Object.values(healthData || {}).filter(s => s === 'Error').length,
+  };
+
   return (
-    <div className="p-8 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="flex flex-col h-full max-w-7xl mx-auto w-full p-4 sm:p-6 space-y-6">
+      <div className="flex justify-between items-end">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">System Readiness</h2>
-          <p className="text-slate-500">Monitor enterprise initialization status</p>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">ERP System Health</h1>
+          <p className="text-slate-500 mt-1 text-sm">Real-time system diagnostics and readiness verification.</p>
         </div>
-        <div className="flex items-center gap-4 bg-white p-4 rounded-xl border shadow-sm">
-          <div className="text-right">
-            <p className="text-sm text-slate-500 font-medium">Overall Progress</p>
-            <p className="text-2xl font-bold text-blue-600">{healthData.progress}%</p>
+        <button onClick={fetchHealth} className="bg-white border border-slate-200 hover:border-slate-300 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center gap-2">
+          <RefreshCcw className="w-4 h-4" />
+          Refresh Status
+        </button>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex justify-between items-center">
+          <div>
+            <h3 className="text-emerald-800 font-semibold text-sm mb-1">Passed Checks</h3>
+            <p className="text-3xl font-black text-emerald-600">{statusCounts.pass}</p>
           </div>
-          <div className="w-12 h-12 rounded-full border-4 border-blue-100 flex items-center justify-center">
-             <div className="text-blue-600 font-bold">{healthData.systemReady ? 'OK' : '!'}</div>
+          <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+            <CheckCircle2 className="w-6 h-6" />
+          </div>
+        </div>
+        <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 flex justify-between items-center">
+          <div>
+            <h3 className="text-amber-800 font-semibold text-sm mb-1">Warnings</h3>
+            <p className="text-3xl font-black text-amber-600">{statusCounts.warning}</p>
+          </div>
+          <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
+            <AlertTriangle className="w-6 h-6" />
+          </div>
+        </div>
+        <div className="bg-rose-50 border border-rose-100 rounded-xl p-4 flex justify-between items-center">
+          <div>
+            <h3 className="text-rose-800 font-semibold text-sm mb-1">Errors</h3>
+            <p className="text-3xl font-black text-rose-600">{statusCounts.error}</p>
+          </div>
+          <div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center text-rose-600">
+            <XCircle className="w-6 h-6" />
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {modules.map(mod => (
-          <div key={mod.name} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-            <div className="flex justify-between items-start mb-4">
-              <div className="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center text-slate-500">
-                <mod.icon className="w-5 h-5" />
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-slate-100 bg-slate-50/50">
+          <h3 className="font-bold text-slate-800">Verification Report</h3>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+          <div className="divide-y divide-slate-100">
+            {components.slice(0, 7).map((comp) => (
+              <div key={comp.key} className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded bg-slate-100 text-slate-500`}>
+                    <comp.icon className="w-4 h-4" />
+                  </div>
+                  <span className="font-medium text-slate-800">{comp.name}</span>
+                </div>
+                {getStatusDisplay(healthData?.[comp.key] || 'Unknown')}
               </div>
-              {mod.status === 'OK' ? (
-                <CheckCircle2 className="w-5 h-5 text-green-500" />
-              ) : (
-                <AlertCircle className="w-5 h-5 text-amber-500" />
-              )}
-            </div>
-            <h4 className="font-semibold text-slate-800">{mod.name}</h4>
-            <div className="mt-3 flex items-center justify-between text-sm">
-              <span className={mod.status === 'OK' ? 'text-green-600' : 'text-amber-600'}>
-                {mod.status}
-              </span>
-              <span className="font-medium text-slate-700">{mod.score}%</span>
-            </div>
-            <div className="mt-2 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-               <div className={`h-full ${mod.status === 'OK' ? 'bg-green-500' : 'bg-slate-300'}`} style={{ width: `${mod.score}%` }} />
-            </div>
+            ))}
           </div>
-        ))}
+          <div className="divide-y divide-slate-100">
+            {components.slice(7).map((comp) => (
+              <div key={comp.key} className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded bg-slate-100 text-slate-500`}>
+                    <comp.icon className="w-4 h-4" />
+                  </div>
+                  <span className="font-medium text-slate-800">{comp.name}</span>
+                </div>
+                {getStatusDisplay(healthData?.[comp.key] || 'Unknown')}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
