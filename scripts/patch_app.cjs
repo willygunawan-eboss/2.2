@@ -1,31 +1,15 @@
-import { GlobalErrorBoundary } from "./components/GlobalErrorBoundary";
-import React, { useState, useEffect } from 'react';
-import { Sidebar } from './components/Sidebar';
-import { Header } from './components/Header';
-import { DashboardView } from './pages/DashboardView';
-import { HRView } from './pages/HRView';
-import { FinanceView } from './pages/FinanceView';
-import { SalesView } from './pages/SalesView';
-import { InventoryView } from './pages/InventoryView';
-import { ProjectsView } from './pages/ProjectsView';
-import { SettingsView } from './pages/SettingsView';
-import { CRMView } from './pages/CRMView';
-import { PurchaseView } from './pages/PurchaseView';
-import { AssetView } from './pages/AssetView';
-import { FieldServiceView } from './pages/FieldServiceView';
-import { HelpdeskView } from './pages/HelpdeskView';
-import { InvoicingView } from './pages/InvoicingView';
-import { BIView } from './pages/BIView';
-import { DMSView } from './pages/DMSView';
-import { KBView } from './pages/KBView';
-import { LoginView } from './pages/LoginView';
-import { SetupCenterView } from './pages/SetupCenterView';
-import { SystemReadinessView } from './pages/SystemReadinessView';
-import { BootstrapWizard } from './pages/BootstrapWizard';
-import { RBACProvider, useRBAC } from './contexts/RBACContext';
-import { ModuleId } from './types';
+const fs = require('fs');
 
-function MainApp() {
+let content = fs.readFileSync('src/App.tsx', 'utf8');
+
+// Replace everything up to `function MainApp()` to add the import
+content = content.replace(
+  `import { SystemReadinessView } from './pages/SystemReadinessView';`,
+  `import { SystemReadinessView } from './pages/SystemReadinessView';\nimport { BootstrapWizard } from './pages/BootstrapWizard';`
+);
+
+// We want to rewrite MainApp completely
+const newMainApp = `function MainApp() {
   const [appState, setAppState] = useState<'checking_bootstrap' | 'bootstrap_required' | 'checking_auth' | 'unauthenticated' | 'authenticated' | 'error'>('checking_bootstrap');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [userRole, setUserRole] = useState<string>("");
@@ -209,14 +193,10 @@ function MainApp() {
       </div>
     </div>
   );
-}
+}`;
 
-export default function App() {
-  return (
-    <GlobalErrorBoundary>
-    <RBACProvider>
-      <MainApp />
-    </RBACProvider>
-    </GlobalErrorBoundary>
-  );
-}
+const oldMainAppRegex = /function MainApp\(\) \{[\s\S]*?return \([\s\S]*?\);\n\}/;
+content = content.replace(oldMainAppRegex, newMainApp);
+
+fs.writeFileSync('src/App.tsx', content);
+console.log('patched App.tsx');

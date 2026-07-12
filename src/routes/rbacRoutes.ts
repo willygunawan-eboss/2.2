@@ -150,7 +150,7 @@ router.get('/context', (req, res) => {
   res.json({
     success: true,
     data: {
-      roles: getUserRoles(user.id),
+      roles: user.role === 'SUPER_ADMIN' ? [...new Set([...getUserRoles(user.id), 'SUPER_ADMIN'])] : getUserRoles(user.id),
       permissions: getUserPermissions(user.id),
       modules: [...new Set(getUserPermissions(user.id).map((p: string) => p.split('_')[1]?.toLowerCase()).filter(Boolean))],
       menus: getUserMenus(user.id),

@@ -63,8 +63,8 @@ const REFRESH_SECRET = process.env.REFRESH_SECRET || 'fallback-refresh-secret';
 app.use(cookieParser());
 
 const authMiddleware = async (req, res, next) => {
-  if (['/api/auth/login', '/api/auth/refresh', '/api/auth/logout', '/api/health', '/api/system/health'].includes(req.path)) return next();
-  if (['/api/auth/login', '/api/auth/refresh', '/api/auth/logout'].includes(req.path) || req.path.startsWith('/api/health') || req.path.startsWith('/api/system/health')) return next();
+  if (['/api/auth/login', '/api/auth/refresh', '/api/auth/logout', '/api/health', '/api/system/health', '/api/bootstrap/status', '/api/bootstrap'].includes(req.path)) return next();
+  if (['/api/auth/login', '/api/auth/refresh', '/api/auth/logout', '/api/bootstrap/status', '/api/bootstrap'].includes(req.path) || req.path.startsWith('/api/health') || req.path.startsWith('/api/system/health')) return next();
   if (!req.path.startsWith('/api/')) return next();
 
   const { token, refreshToken } = req.cookies;
@@ -317,95 +317,65 @@ app.get('/api/auth/me', async (req, res) => {
   
     app.get("/api/bootstrap/status", async (req, res) => {
     try {
-      const companies = await db.select({ id: schema.companies.id }).from(schema.companies);
-      const branches = await db.select({ id: schema.branches.id }).from(schema.branches);
-      const divisions = await db.select({ id: schema.divisions.id }).from(schema.divisions);
-      const departments = await db.select({ id: schema.departments.id }).from(schema.departments);
-      const positions = await db.select({ id: schema.positions.id }).from(schema.positions);
-      
-      const roles = await db.select({ id: schema.roles.id }).from(schema.roles);
-      const permissions = await db.select({ id: schema.permissions.id }).from(schema.permissions);
-
-      const refs = await db.select({ id: schema.referenceGroups.id }).from(schema.referenceGroups);
-      
-      const employees = await db.select({ id: schema.employees.id }).from(schema.employees);
-      const jobGrades = await db.select({ id: schema.jobGrades.id }).from(schema.jobGrades);
-
-      const customers = await db.select({ id: schema.customers.id }).from(schema.customers);
-      
-      // Calculate readiness per module
-      const orgReady = companies.length > 0 && branches.length > 0 && departments.length > 0;
-      const hrReady = employees.length > 0 && positions.length > 0;
-      const refReady = refs.length > 0;
-      const rbacReady = roles.length > 0;
-      const crmReady = customers.length > 0;
-
-      const isSystemReady = orgReady && hrReady && refReady && rbacReady;
-
+      const companies = await db.select({ id: schema.companies.id }).from(schema.companies).limit(1);
+      const isSystemReady = companies.length > 0;
       res.json({ 
         success: true,
-        data: {
-          erpReady: isSystemReady,
-          systemReady: isSystemReady,
-          modules: {
-            organization: {
-              ready: orgReady,
-              progress: Math.round(((companies.length > 0 ? 1 : 0) + (branches.length > 0 ? 1 : 0) + (divisions.length > 0 ? 1 : 0) + (departments.length > 0 ? 1 : 0) + (positions.length > 0 ? 1 : 0)) / 5 * 100),
-              details: {
-                companies: companies.length,
-                branches: branches.length,
-                divisions: divisions.length,
-                departments: departments.length,
-                positions: positions.length
-              },
-              dependencies: []
-            },
-            hr: {
-              ready: hrReady,
-              progress: Math.round(((employees.length > 0 ? 1 : 0) + (jobGrades.length > 0 ? 1 : 0)) / 2 * 100),
-              details: {
-                employees: employees.length,
-                jobGrades: jobGrades.length
-              },
-              dependencies: ['organization']
-            },
-            reference: {
-              ready: refReady,
-              progress: refs.length > 0 ? 100 : 0,
-              details: {
-                referenceGroups: refs.length
-              },
-              dependencies: []
-            },
-            rbac: {
-              ready: rbacReady,
-              progress: Math.round(((roles.length > 0 ? 1 : 0) + (permissions.length > 0 ? 1 : 0)) / 2 * 100),
-              details: {
-                roles: roles.length,
-                permissions: permissions.length
-              },
-              dependencies: []
-            },
-            crm: {
-              ready: crmReady,
-              progress: customers.length > 0 ? 100 : 0,
-              details: {
-                customers: customers.length
-              },
-              dependencies: ['organization']
-            },
-            asset: { ready: false, progress: 0, details: {}, dependencies: ['organization'] },
-            finance: { ready: false, progress: 0, details: {}, dependencies: ['organization'] },
-            helpdesk: { ready: false, progress: 0, details: {}, dependencies: ['organization', 'hr'] }
-          }
-        }
+        status: isSystemReady ? 'bootstrapCompleted' : 'bootstrapRequired'
       });
     } catch (e) {
       res.status(500).json({ success: false, error: String(e) });
     }
   });
 
-    app.get("/api/system/health", async (req, res) => {
+  app.post("/api/bootstrap", async (req, res) => {
+    try {
+      const { companyName, adminPassword } = req.body;
+      if (!companyName) return res.status(400).json({ success: false, message: 'companyName required' });
+      
+      const compId = crypto.randomUUID();
+      await db.insert(schema.companies).values({
+        id: compId,
+        name: companyName,
+        code: 'COMP-01'
+      });
+      
+      const branchId = crypto.randomUUID();
+      await db.insert(schema.branches).values({
+        id: branchId,
+        companyId: compId,
+        name: 'Main Branch',
+        code: 'HQ'
+      });
+      
+      const divId = crypto.randomUUID();
+      await db.insert(schema.divisions).values({
+        id: divId,
+        companyId: compId,
+        name: 'Main Division',
+        code: 'DIV-01'
+      });
+
+      const deptId = crypto.randomUUID();
+      await db.insert(schema.departments).values({
+        id: deptId,
+        divisionId: divId,
+        name: 'Management',
+        code: 'MGT'
+      });
+
+      if (adminPassword) {
+         const passwordHash = await bcrypt.hash(adminPassword, 10);
+         await db.update(schema.users).set({ passwordHash }).where(eq(schema.users.username, 'admin'));
+      }
+      
+      res.json({ success: true, status: 'bootstrapCompleted' });
+    } catch (e) {
+      res.status(500).json({ success: false, error: String(e) });
+    }
+  });
+
+  app.get("/api/system/health", async (req, res) => {
     try {
       const companies = await db.select({ id: schema.companies.id }).from(schema.companies).limit(1);
       const branches = await db.select({ id: schema.branches.id }).from(schema.branches).limit(1);
