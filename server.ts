@@ -359,7 +359,7 @@ app.get('/api/auth/me', async (req, res) => {
         divId = existingDiv[0].id;
       } else {
         divId = crypto.randomUUID();
-        await db.insert(schema.divisions).values({ id: divId, companyId: compId, name: 'Main Division', code: 'DIV-01' });
+        await db.insert(schema.divisions).values({ id: divId, companyId: compId, branchId: branchId, name: 'Main Division', code: 'DIV-01' });
       }
 
       let deptId = '';
@@ -368,7 +368,16 @@ app.get('/api/auth/me', async (req, res) => {
         deptId = existingDept[0].id;
       } else {
         deptId = crypto.randomUUID();
-        await db.insert(schema.departments).values({ id: deptId, divisionId: divId, name: 'Management', code: 'MGT' });
+        await db.insert(schema.departments).values({ id: deptId, companyId: compId, branchId: branchId, divisionId: divId, name: 'Management', code: 'MGT' });
+      }
+
+      let sectId = '';
+      const existingSect = await db.select({ id: schema.sections.id }).from(schema.sections).where(eq(schema.sections.departmentId, deptId)).limit(1);
+      if (existingSect.length > 0) {
+        sectId = existingSect[0].id;
+      } else {
+        sectId = crypto.randomUUID();
+        await db.insert(schema.sections).values({ id: sectId, companyId: compId, branchId: branchId, divisionId: divId, departmentId: deptId, name: 'General Section', code: 'SEC-GEN' });
       }
 
       let jgId = '';
@@ -386,7 +395,7 @@ app.get('/api/auth/me', async (req, res) => {
         posId = existingPos[0].id;
       } else {
         posId = crypto.randomUUID();
-        await db.insert(schema.positions).values({ id: posId, departmentId: deptId, jobGradeId: jgId, code: 'POS-DIR', name: 'Director' });
+        await db.insert(schema.positions).values({ id: posId, companyId: compId, branchId: branchId, divisionId: divId, departmentId: deptId, sectionId: sectId, jobGradeId: jgId, code: 'POS-DIR', name: 'Director' });
       }
 
       const adminUsers = await db.select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.username, 'admin')).limit(1);
@@ -402,7 +411,7 @@ app.get('/api/auth/me', async (req, res) => {
       const existingEmp = await db.select({ id: schema.employees.id }).from(schema.employees).where(eq(schema.employees.employeeNumber, 'EMP-0001')).limit(1);
       if (existingEmp.length === 0 && adminUserId) {
         const empId = crypto.randomUUID();
-        const sqlQuery = sql`INSERT INTO employees (id, employee_number, name, email, company_id, branch_id, department_id, position_id, status) VALUES (${empId}, 'EMP-0001', 'Administrator', 'admin@ichangeboss.com', ${compId}, ${branchId}, ${deptId}, ${posId}, 'Active')`;
+        const sqlQuery = sql`INSERT INTO employees (id, employee_number, name, email, company_id, branch_id, department_id, section_id, position_id, status) VALUES (${empId}, 'EMP-0001', 'Administrator', 'admin@ichangeboss.com', ${compId}, ${branchId}, ${deptId}, ${sectId}, ${posId}, 'Active')`;
         await db.run(sqlQuery);
       }
 
@@ -469,14 +478,25 @@ app.get('/api/auth/me', async (req, res) => {
     res.json({ status: "ok", message: "ICHANGEBOSS API is running", timestamp: new Date().toISOString() });
   });
 
+  
   app.get("/api/dashboard/stats", async (req, res) => {
     try {
-      const statsResult = await db.select().from(schema.dashboardStats).where(eq(schema.dashboardStats.id, 'main'));
-      res.json({ success: true, data: statsResult[0] });
+      const activeEmployees = await db.select({ count: sql`count(*)` }).from(schema.employees).where(eq(schema.employees.status, 'Active'));
+      const totalDepartments = await db.select({ count: sql`count(*)` }).from(schema.departments);
+      const openTickets = await db.select({ count: sql`count(*)` }).from(schema.tickets);
+      const monthlyRevenue = 0; // Keeping 0 for now as finance is not implemented yet
+      
+      res.json({ success: true, data: {
+        activeEmployees: activeEmployees[0]?.count || 0,
+        totalDepartments: totalDepartments[0]?.count || 0,
+        openTickets: openTickets[0]?.count || 0,
+        monthlyRevenue
+      } });
     } catch (e) {
       res.status(500).json({ success: false, error: String(e) });
     }
   });
+
 
   const createGetRoute = (path: string, table: any, moduleName?: string) => {
     const middleware = moduleName ? requirePermission(moduleName, 'read') : (req, res, next) => next();

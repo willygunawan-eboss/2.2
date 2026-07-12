@@ -1,46 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Search, Building2, MapPin, Network, Layers, Star, Briefcase, Users } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { CompanyManager } from '../components/CompanyManager';
 
-export function OrgMasterView() {
-  const [activeTab, setActiveTab] = useState('company');
-
-  const tabs = [
-    { id: 'company', label: 'Company', icon: Building2 },
-    { id: 'branches', label: 'Branch', icon: MapPin },
-    { id: 'divisions', label: 'Division', icon: Network },
-    { id: 'departments', label: 'Department', icon: Layers },
-    { id: 'job-grades', label: 'Job Grade', icon: Star },
-    { id: 'positions', label: 'Position', icon: Briefcase },
-    { id: 'employees', label: 'Employee', icon: Users },
-  ];
+export function OrgMasterView({ defaultTab }: { defaultTab?: string }) {
+  const activeTab = defaultTab || 'company';
+  const endpointMap: any = { 'job_grade': 'job-grades', 'branch': 'branches', 'division': 'divisions', 'department': 'departments', 'section': 'sections', 'team': 'teams', 'position': 'positions', 'employee': 'employees', 'company': 'companies' };
 
   return (
     <div className="flex flex-col h-full bg-white rounded-xl border border-slate-200/60 shadow-sm overflow-hidden">
-      <div className="border-b border-slate-100 p-2">
-        <div className="flex space-x-1 overflow-x-auto custom-scrollbar pb-1">
-          {tabs.map(tab => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={cn(
-                  "flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap",
-                  activeTab === tab.id
-                    ? "bg-blue-50 text-blue-700"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                )}
-              >
-                <Icon className="w-4 h-4" />
-                {tab.label}
-              </button>
-            )
-          })}
-        </div>
-      </div>
-      <div className="flex-1 overflow-y-auto p-4 custom-scrollbar relative">
-        <GenericCrud endpoint={activeTab} />
+      <div className="flex-1 overflow-y-auto custom-scrollbar relative h-full">
+        {activeTab === 'company' ? (
+          <CompanyManager />
+        ) : (
+          <div className="p-4 h-full">
+            <GenericCrud endpoint={endpointMap[activeTab] || activeTab} />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -81,13 +57,14 @@ function GenericCrud({ endpoint }: { endpoint: string }) {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/org/${endpoint}?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}`);
+      const res = await fetch(`/api/org/${endpoint}?page=${page}&limit=${limit}&search=${search}`);
       const json = await res.json();
       if (json.success) {
         setData(json.data);
-        setTotal(json.pagination.total);
+        setTotal(json.pagination?.total || 0);
       }
     } catch (e) {
+      console.error(e);
     } finally {
       setLoading(false);
     }
@@ -103,40 +80,36 @@ function GenericCrud({ endpoint }: { endpoint: string }) {
 
   const openCreateModal = () => {
     setFormMode('create');
-    setFormData({ isActive: true });
+    setFormData({});
     setIsModalOpen(true);
   };
 
-  const openEditModal = (record: any) => {
+  const openEditModal = (row: any) => {
     setFormMode('edit');
-    setFormData({ ...record });
+    setFormData(row);
     setIsModalOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubmitting) return;
     setIsSubmitting(true);
     try {
       const url = formMode === 'create' ? `/api/org/${endpoint}` : `/api/org/${endpoint}/${formData.id}`;
       const method = formMode === 'create' ? 'POST' : 'PUT';
-      
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
-      
-      if (res.ok) {
+      const json = await res.json();
+      if (json.success) {
         setIsModalOpen(false);
         fetchData();
-        fetchReferences(); // Refresh dropdowns
       } else {
-        const error = await res.json();
-        alert(`Error: \n${JSON.stringify(error.error || error.message)}`);
+        alert(JSON.stringify(json.error || json.message));
       }
-    } catch (error) {
-      console.error(error);
+    } catch (e:any) {
+      alert(e.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -155,10 +128,12 @@ function GenericCrud({ endpoint }: { endpoint: string }) {
 
   const getColumns = () => {
     switch (endpoint) {
-      case 'company': return ['code', 'name', 'phone', 'email', 'isActive'];
+      case 'companies': return ['code', 'name', 'phone', 'email', 'isActive'];
       case 'branches': return ['code', 'name', 'companyId', 'phone', 'isActive'];
-      case 'divisions': return ['code', 'name', 'companyId', 'isActive'];
+      case 'divisions': return ['code', 'name', 'companyId', 'branchId', 'isActive'];
       case 'departments': return ['code', 'name', 'divisionId', 'isActive'];
+      case 'sections': return ['code', 'name', 'departmentId', 'isActive'];
+      case 'teams': return ['code', 'name', 'sectionId', 'isActive'];
       case 'job-grades': return ['code', 'name', 'level', 'isActive'];
       case 'positions': return ['code', 'name', 'departmentId', 'jobGradeId', 'isActive'];
       case 'employees': return ['employeeNumber', 'name', 'email', 'positionId', 'status'];
@@ -209,6 +184,8 @@ function GenericCrud({ endpoint }: { endpoint: string }) {
                     if (c === 'companyId') val = references.companies?.find((x:any) => x.id === val)?.name || val;
                     if (c === 'divisionId') val = references.divisions?.find((x:any) => x.id === val)?.name || val;
                     if (c === 'departmentId') val = references.departments?.find((x:any) => x.id === val)?.name || val;
+                    if (c === 'sectionId') val = references.sections?.find((x:any) => x.id === val)?.name || val;
+                    if (c === 'teamId') val = references.teams?.find((x:any) => x.id === val)?.name || val;
                     if (c === 'jobGradeId') val = references.jobGrades?.find((x:any) => x.id === val)?.name || val;
                     if (c === 'positionId') val = references.positions?.find((x:any) => x.id === val)?.name || val;
                     if (c === 'branchId') val = references.branches?.find((x:any) => x.id === val)?.name || val;
@@ -225,18 +202,19 @@ function GenericCrud({ endpoint }: { endpoint: string }) {
             </tbody>
           </table>
         </div>
-        
-        <div className="p-4 border-t border-slate-100 flex items-center justify-between text-sm text-slate-500">
-          <div>Showing page {page} of {totalPages || 1}</div>
-          <div className="flex gap-1">
-            <button disabled={page === 1} onClick={() => setPage(p => p - 1)} className="px-3 py-1 border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50">Prev</button>
-            <button disabled={page === totalPages || totalPages === 0} onClick={() => setPage(p => p + 1)} className="px-3 py-1 border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50">Next</button>
-          </div>
+      </div>
+
+      <div className="flex justify-between items-center mt-4">
+        <span className="text-sm text-slate-500">Total: {total} records</span>
+        <div className="flex gap-2">
+          <button disabled={page === 1} onClick={() => setPage(p => p - 1)} className="px-3 py-1 rounded border border-slate-200 text-sm hover:bg-slate-50 disabled:opacity-50">Prev</button>
+          <span className="px-3 py-1 text-sm text-slate-600">Page {page} of {totalPages || 1}</span>
+          <button disabled={page >= totalPages} onClick={() => setPage(p => p + 1)} className="px-3 py-1 rounded border border-slate-200 text-sm hover:bg-slate-50 disabled:opacity-50">Next</button>
         </div>
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
               <h2 className="font-bold text-slate-900 capitalize">{formMode} Record</h2>
@@ -258,6 +236,8 @@ function GenericCrud({ endpoint }: { endpoint: string }) {
                     if (c === 'companyId') opts = references.companies || [];
                     if (c === 'divisionId') opts = references.divisions || [];
                     if (c === 'departmentId') opts = references.departments || [];
+                    if (c === 'sectionId') opts = references.sections || [];
+                    if (c === 'teamId') opts = references.teams || [];
                     if (c === 'jobGradeId') opts = references.jobGrades || [];
                     if (c === 'positionId') opts = references.positions || [];
                     if (c === 'branchId') opts = references.branches || [];

@@ -132,6 +132,18 @@ export async function runSeeder() {
   // 7. Ensure Default Division & Job Grade for Bootstrap
   const comp = await db.select().from(schema.companies).limit(1);
   if (comp.length > 0) {
+    const branch = await db.select().from(schema.branches).limit(1);
+    let defaultBranchId = branch[0]?.id;
+    if (!defaultBranchId) {
+      defaultBranchId = randomUUID();
+      await db.insert(schema.branches).values({
+        id: defaultBranchId,
+        companyId: comp[0].id,
+        code: 'BR-01',
+        name: 'Main Branch'
+      });
+    }
+
     const div = await db.select().from(schema.divisions).limit(1);
     let defaultDivId = div[0]?.id;
     if (!defaultDivId) {
@@ -139,6 +151,7 @@ export async function runSeeder() {
       await db.insert(schema.divisions).values({
         id: defaultDivId,
         companyId: comp[0].id,
+        branchId: defaultBranchId,
         code: 'DIV-01',
         name: 'Main Division'
       });

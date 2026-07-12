@@ -328,13 +328,39 @@ CREATE TABLE `audit_permissions` (
 	FOREIGN KEY (`performed_by`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
+CREATE TABLE `branch_audits` (
+	`id` text PRIMARY KEY NOT NULL,
+	`branch_id` text NOT NULL,
+	`action` text NOT NULL,
+	`changes` text,
+	`performed_by` text,
+	`performed_at` text DEFAULT CURRENT_TIMESTAMP,
+	FOREIGN KEY (`branch_id`) REFERENCES `branches`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
 CREATE TABLE `branches` (
 	`id` text PRIMARY KEY NOT NULL,
 	`company_id` text NOT NULL,
 	`code` text NOT NULL,
 	`name` text NOT NULL,
-	`address` text,
+	`branch_type` text,
+	`tax_number` text,
 	`phone` text,
+	`email` text,
+	`website` text,
+	`address` text,
+	`country` text,
+	`province` text,
+	`city` text,
+	`postal_code` text,
+	`latitude` text,
+	`longitude` text,
+	`timezone` text,
+	`working_calendar` text,
+	`default_currency` text,
+	`notes` text,
+	`status` text DEFAULT 'Active',
+	`is_default` integer DEFAULT false,
 	`is_active` integer DEFAULT true,
 	`created_at` text DEFAULT CURRENT_TIMESTAMP,
 	`updated_at` text,
@@ -469,9 +495,26 @@ CREATE TABLE `companies` (
 	`id` text PRIMARY KEY NOT NULL,
 	`code` text NOT NULL,
 	`name` text NOT NULL,
-	`address` text,
-	`phone` text,
+	`legal_name` text,
+	`business_type` text,
+	`industry` text,
+	`tax_number` text,
+	`registration_number` text,
 	`email` text,
+	`phone` text,
+	`website` text,
+	`logo` text,
+	`address` text,
+	`country` text,
+	`province` text,
+	`city` text,
+	`postal_code` text,
+	`currency` text,
+	`timezone` text,
+	`language` text,
+	`status` text DEFAULT 'Active',
+	`notes` text,
+	`is_default` integer DEFAULT false,
 	`is_active` integer DEFAULT true,
 	`created_at` text DEFAULT CURRENT_TIMESTAMP,
 	`updated_at` text,
@@ -482,6 +525,16 @@ CREATE TABLE `companies` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `companies_code_unique` ON `companies` (`code`);--> statement-breakpoint
+CREATE TABLE `company_audits` (
+	`id` text PRIMARY KEY NOT NULL,
+	`company_id` text NOT NULL,
+	`action` text NOT NULL,
+	`changes` text,
+	`performed_by` text,
+	`performed_at` text DEFAULT CURRENT_TIMESTAMP,
+	FOREIGN KEY (`company_id`) REFERENCES `companies`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
 CREATE TABLE `contract_approvals` (
 	`id` text PRIMARY KEY NOT NULL,
 	`contract_id` text NOT NULL,
@@ -829,6 +882,8 @@ CREATE TABLE `data_scopes` (
 CREATE UNIQUE INDEX `data_scopes_name_unique` ON `data_scopes` (`name`);--> statement-breakpoint
 CREATE TABLE `departments` (
 	`id` text PRIMARY KEY NOT NULL,
+	`company_id` text NOT NULL,
+	`branch_id` text NOT NULL,
 	`division_id` text NOT NULL,
 	`code` text NOT NULL,
 	`name` text NOT NULL,
@@ -839,6 +894,8 @@ CREATE TABLE `departments` (
 	`updated_by` text,
 	`deleted_at` text,
 	`deleted_by` text,
+	FOREIGN KEY (`company_id`) REFERENCES `companies`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`branch_id`) REFERENCES `branches`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`division_id`) REFERENCES `divisions`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
@@ -846,6 +903,7 @@ CREATE UNIQUE INDEX `departments_code_unique` ON `departments` (`code`);--> stat
 CREATE TABLE `divisions` (
 	`id` text PRIMARY KEY NOT NULL,
 	`company_id` text NOT NULL,
+	`branch_id` text NOT NULL,
 	`code` text NOT NULL,
 	`name` text NOT NULL,
 	`is_active` integer DEFAULT true,
@@ -855,7 +913,8 @@ CREATE TABLE `divisions` (
 	`updated_by` text,
 	`deleted_at` text,
 	`deleted_by` text,
-	FOREIGN KEY (`company_id`) REFERENCES `companies`(`id`) ON UPDATE no action ON DELETE no action
+	FOREIGN KEY (`company_id`) REFERENCES `companies`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`branch_id`) REFERENCES `branches`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `divisions_code_unique` ON `divisions` (`code`);--> statement-breakpoint
@@ -1007,6 +1066,7 @@ CREATE TABLE `employees` (
 	`company_id` text,
 	`branch_id` text,
 	`department_id` text,
+	`section_id` text,
 	`position_id` text,
 	`status` text DEFAULT 'Active' NOT NULL,
 	`join_date` text,
@@ -1020,6 +1080,7 @@ CREATE TABLE `employees` (
 	FOREIGN KEY (`company_id`) REFERENCES `companies`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`branch_id`) REFERENCES `branches`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`department_id`) REFERENCES `departments`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`section_id`) REFERENCES `sections`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`position_id`) REFERENCES `positions`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
@@ -1146,7 +1207,12 @@ CREATE TABLE `permissions` (
 --> statement-breakpoint
 CREATE TABLE `positions` (
 	`id` text PRIMARY KEY NOT NULL,
+	`company_id` text NOT NULL,
+	`branch_id` text NOT NULL,
+	`division_id` text NOT NULL,
 	`department_id` text NOT NULL,
+	`section_id` text,
+	`team_id` text,
 	`job_grade_id` text NOT NULL,
 	`code` text NOT NULL,
 	`name` text NOT NULL,
@@ -1157,7 +1223,12 @@ CREATE TABLE `positions` (
 	`updated_by` text,
 	`deleted_at` text,
 	`deleted_by` text,
+	FOREIGN KEY (`company_id`) REFERENCES `companies`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`branch_id`) REFERENCES `branches`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`division_id`) REFERENCES `divisions`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`department_id`) REFERENCES `departments`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`section_id`) REFERENCES `sections`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`team_id`) REFERENCES `teams`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`job_grade_id`) REFERENCES `job_grades`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
@@ -1326,6 +1397,28 @@ CREATE TABLE `sales_orders` (
 	FOREIGN KEY (`salesperson_id`) REFERENCES `employees`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
+CREATE TABLE `sections` (
+	`id` text PRIMARY KEY NOT NULL,
+	`company_id` text NOT NULL,
+	`branch_id` text NOT NULL,
+	`division_id` text NOT NULL,
+	`department_id` text NOT NULL,
+	`code` text NOT NULL,
+	`name` text NOT NULL,
+	`is_active` integer DEFAULT true,
+	`created_at` text DEFAULT CURRENT_TIMESTAMP,
+	`updated_at` text,
+	`created_by` text,
+	`updated_by` text,
+	`deleted_at` text,
+	`deleted_by` text,
+	FOREIGN KEY (`company_id`) REFERENCES `companies`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`branch_id`) REFERENCES `branches`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`division_id`) REFERENCES `divisions`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`department_id`) REFERENCES `departments`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `sections_code_unique` ON `sections` (`code`);--> statement-breakpoint
 CREATE TABLE `slas` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
@@ -1365,6 +1458,30 @@ CREATE TABLE `tasks` (
 	FOREIGN KEY (`assigned_to_id`) REFERENCES `employees`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
+CREATE TABLE `teams` (
+	`id` text PRIMARY KEY NOT NULL,
+	`company_id` text NOT NULL,
+	`branch_id` text NOT NULL,
+	`division_id` text NOT NULL,
+	`department_id` text NOT NULL,
+	`section_id` text NOT NULL,
+	`code` text NOT NULL,
+	`name` text NOT NULL,
+	`is_active` integer DEFAULT true,
+	`created_at` text DEFAULT CURRENT_TIMESTAMP,
+	`updated_at` text,
+	`created_by` text,
+	`updated_by` text,
+	`deleted_at` text,
+	`deleted_by` text,
+	FOREIGN KEY (`company_id`) REFERENCES `companies`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`branch_id`) REFERENCES `branches`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`division_id`) REFERENCES `divisions`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`department_id`) REFERENCES `departments`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`section_id`) REFERENCES `sections`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `teams_code_unique` ON `teams` (`code`);--> statement-breakpoint
 CREATE TABLE `ticket_attachments` (
 	`id` text PRIMARY KEY NOT NULL,
 	`ticket_id` text NOT NULL,
