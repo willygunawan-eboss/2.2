@@ -294,7 +294,8 @@ app.get('/api/auth/me', async (req, res) => {
   const modules = [...new Set(permissions.map((p: string) => p.split('_')[1]?.toLowerCase()).filter(Boolean))];
   
   // attempt to fetch employee
-  const employee = await db.select().from(schema.employees).where(eq(schema.employees.userId, user.id)).get() || null;
+  const dbUser = await db.select().from(schema.users).where(eq(schema.users.id, user.id)).get();
+  const employee = dbUser && dbUser.email ? await db.select().from(schema.employees).where(eq(schema.employees.email, dbUser.email)).get() || null : null;
   
   res.json({ 
     success: true, 

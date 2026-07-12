@@ -139,7 +139,7 @@ export async function runSeeder() {
       await db.insert(schema.divisions).values({
         id: defaultDivId,
         companyId: comp[0].id,
-        code: 'DIV-001',
+        code: 'DIV-01',
         name: 'Main Division'
       });
     }
