@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Users, ShoppingCart, Briefcase, CreditCard, Box, MoreHorizontal, ChevronRight, Settings, FileText, Database, HeadphonesIcon, BarChart3, BookOpen, Wrench, FileArchive, Calculator } from 'lucide-react';
+import { LayoutDashboard, Users, Network, ShoppingCart, Briefcase, CreditCard, Box, MoreHorizontal, ChevronRight, Settings, FileText, Database, HeadphonesIcon, BarChart3, BookOpen, Wrench, FileArchive, Calculator } from 'lucide-react';
 import { ModuleId } from '../types';
 import { useRBAC } from '../contexts/RBACContext';
 import { cn } from '../lib/utils';
@@ -23,6 +23,7 @@ const navItems: { id: ModuleId; label: string; icon: React.ElementType; hasSubme
   { id: 'helpdesk', label: 'Helpdesk & Tiket', icon: HeadphonesIcon, hasSubmenu: true },
   { id: 'finance', label: 'Keuangan & Akuntansi', icon: Calculator, hasSubmenu: true },
   { id: 'invoicing', label: 'Faktur (Invoicing)', icon: FileText, hasSubmenu: true },
+  { id: 'org_workspace', label: 'Organization Workspace', icon: Network },
   { id: 'hr', label: 'HR & Payroll', icon: Users, hasSubmenu: true },
   { id: 'bi', label: 'Business Intelligence', icon: BarChart3, hasSubmenu: true },
   { id: 'dms', label: 'Document Management', icon: FileArchive, hasSubmenu: true },

@@ -21,7 +21,9 @@ import assetRoutes from "./src/routes/assetRoutes";
 import cmdbRoutes from "./src/routes/cmdbRoutes";
 import employeeRoutes from "./src/routes/employeeRoutes";
 import { initRBAC, rbacCache } from "./src/middleware/rbac-engine.js";
-import orgRoutes from "./src/routes/orgRoutes";
+import orgRoutes from "./src/routes/orgRoutes.js";
+import orgWorkspaceRoutes from "./src/routes/orgWorkspaceRoutes.js";
+import orgPlatformRoutes from "./src/routes/orgPlatformRoutes.js";
 import { loginSchema, employeeSchema, salesOrderSchema, projectSchema } from "./src/validations";
 import { mockEmployees, mockAttendance, mockPayroll, mockTransactions, mockSalesOrders, mockProducts, mockProductionOrders, mockProjects } from "./src/seedData";
 
@@ -1052,6 +1054,8 @@ app.get('/api/auth/me', async (req, res) => {
 
   app.use("/api/tickets", ticketRoutes);
   app.use("/api/org", orgRoutes);
+  app.use("/api/organization/workspace", orgWorkspaceRoutes);
+  app.use("/api/organization/platform", orgPlatformRoutes);
   app.use("/api/rbac", rbacRoutes);
   app.use("/api/customers", customerRoutes);
   app.use("/api/contracts", contractRoutes);

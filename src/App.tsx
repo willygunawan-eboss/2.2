@@ -9,6 +9,7 @@ import { SalesView } from './pages/SalesView';
 import { InventoryView } from './pages/InventoryView';
 import { ProjectsView } from './pages/ProjectsView';
 import { SettingsView } from './pages/SettingsView';
+import { OrgWorkspaceView } from './pages/OrgWorkspaceView';
 import { CRMView } from './pages/CRMView';
 import { PurchaseView } from './pages/PurchaseView';
 import { AssetView } from './pages/AssetView';
@@ -137,6 +138,8 @@ function MainApp() {
       case 'sales': return <SalesView />;
       case 'inventory': return <InventoryView />;
       case 'hr': return <HRView />;
+      case 'org_workspace': return <OrgWorkspaceView />;
+
       case 'project': return <ProjectsView />;
       case 'settings': return <SettingsView />;
       case 'crm': return <CRMView />;

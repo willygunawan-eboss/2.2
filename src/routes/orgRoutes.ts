@@ -7,6 +7,7 @@ import { JobGradeService } from "../services/JobGradeService.js";
 import { PositionService } from "../services/PositionService.js";
 import { CompanyService } from "../services/CompanyService.js";
 import { OrganizationService } from "../services/OrganizationService.js";
+import { OrganizationRegistryService } from "../services/OrganizationRegistryService.js";
 import { z } from "zod";
 import { Router } from "express";
 import { db } from "../db/index.js";
@@ -32,6 +33,7 @@ const buildCrud = (path: string, table: any, validationSchema: any, searchFields
   router.get(`/${path}`, async (req, res) => {
     try {
       const result = await OrganizationService.list(table, req.query, searchFields);
+      OrganizationRegistryService.invalidateCache();
       res.json({ success: true, ...result });
     } catch (error: any) {
       res.status(500).json({ success: false, message: error.message });
@@ -43,6 +45,7 @@ const buildCrud = (path: string, table: any, validationSchema: any, searchFields
     try {
       const data = await OrganizationService.getById(table, req.params.id);
       if (!data) return res.status(404).json({ success: false, message: "Not found" });
+      OrganizationRegistryService.invalidateCache();
       res.json({ success: true, data });
     } catch (error: any) {
       res.status(500).json({ success: false, message: error.message });
@@ -65,6 +68,7 @@ const buildCrud = (path: string, table: any, validationSchema: any, searchFields
       const validatedData = validationSchema.parse(req.body);
       // @ts-ignore
       const result = await OrganizationService.create(table, validatedData, req.user?.username);
+      OrganizationRegistryService.invalidateCache();
       res.status(201).json({ success: true, data: result });
     } catch (error: any) {
       if (error.errors) return res.status(400).json({ success: false, error: error.errors });
@@ -82,6 +86,7 @@ const buildCrud = (path: string, table: any, validationSchema: any, searchFields
       // @ts-ignore
       const updated = await OrganizationService.update(table, req.params.id, validatedData, req.user?.username);
       if (!updated) return res.status(404).json({ success: false, message: "Not found" });
+      OrganizationRegistryService.invalidateCache();
       res.json({ success: true, message: "Updated successfully" });
     } catch (error: any) {
       if (error.errors) return res.status(400).json({ success: false, error: error.errors });
@@ -95,6 +100,7 @@ const buildCrud = (path: string, table: any, validationSchema: any, searchFields
       // @ts-ignore
       const deleted = await OrganizationService.delete(table, req.params.id, req.user?.username);
       if (!deleted) return res.status(404).json({ success: false, message: "Not found" });
+      OrganizationRegistryService.invalidateCache();
       res.json({ success: true, message: "Deleted successfully" });
     } catch (error: any) {
       res.status(500).json({ success: false, message: error.message });
@@ -142,7 +148,8 @@ router.post("/companies", requirePermission('company', 'write'), async (req, res
     const validatedData = companySchema.parse(req.body);
     // @ts-ignore
     const result = await CompanyService.create(validatedData, req.user?.username);
-    res.status(201).json({ success: true, data: result });
+    OrganizationRegistryService.invalidateCache();
+      res.status(201).json({ success: true, data: result });
   } catch (error: any) {
     if (error.errors) return res.status(400).json({ success: false, error: error.errors });
     res.status(500).json({ success: false, message: error.message });
@@ -225,7 +232,8 @@ router.post("/branches", requirePermission('branch', 'write'), async (req, res) 
     const validatedData = branchSchema.parse(req.body);
     // @ts-ignore
     const result = await BranchService.create(validatedData, req.user?.username);
-    res.status(201).json({ success: true, data: result });
+    OrganizationRegistryService.invalidateCache();
+      res.status(201).json({ success: true, data: result });
   } catch (error: any) {
     if (error.errors) return res.status(400).json({ success: false, error: error.errors });
     res.status(500).json({ success: false, message: error.message });
@@ -309,7 +317,8 @@ router.post("/divisions", requirePermission('division', 'write'), async (req, re
     const validatedData = divisionSchema.parse(req.body);
     // @ts-ignore
     const result = await DivisionService.create(validatedData, req.user?.username);
-    res.status(201).json({ success: true, data: result });
+    OrganizationRegistryService.invalidateCache();
+      res.status(201).json({ success: true, data: result });
   } catch (error: any) {
     if (error.errors) return res.status(400).json({ success: false, error: error.errors });
     res.status(500).json({ success: false, message: error.message });
@@ -391,7 +400,8 @@ router.post("/departments", requirePermission('department', 'write'), async (req
     const validatedData = departmentSchema.parse(req.body);
     // @ts-ignore
     const result = await DepartmentService.create(validatedData, req.user?.username);
-    res.status(201).json({ success: true, data: result });
+    OrganizationRegistryService.invalidateCache();
+      res.status(201).json({ success: true, data: result });
   } catch (error: any) {
     if (error.errors) return res.status(400).json({ success: false, error: error.errors });
     res.status(500).json({ success: false, message: error.message });
@@ -474,7 +484,8 @@ router.post("/sections", requirePermission('section', 'write'), async (req, res)
     const validatedData = sectionSchema.parse(req.body);
     // @ts-ignore
     const result = await SectionService.create(validatedData, req.user?.username);
-    res.status(201).json({ success: true, data: result });
+    OrganizationRegistryService.invalidateCache();
+      res.status(201).json({ success: true, data: result });
   } catch (error: any) {
     if (error.errors) return res.status(400).json({ success: false, error: error.errors });
     res.status(500).json({ success: false, message: error.message });
@@ -556,7 +567,8 @@ router.post("/teams", requirePermission('team', 'write'), async (req, res) => {
     const validatedData = teamSchema.parse(req.body);
     // @ts-ignore
     const result = await TeamService.create(validatedData, req.user?.username);
-    res.status(201).json({ success: true, data: result });
+    OrganizationRegistryService.invalidateCache();
+      res.status(201).json({ success: true, data: result });
   } catch (error: any) {
     if (error.errors) return res.status(400).json({ success: false, error: error.errors });
     res.status(500).json({ success: false, message: error.message });
@@ -651,7 +663,8 @@ router.post("/job-grades", async (req, res) => {
     const validatedData = jobGradeSchema.parse(req.body);
     // @ts-ignore
     const result = await JobGradeService.create(validatedData, req.user?.username);
-    res.status(201).json({ success: true, data: result });
+    OrganizationRegistryService.invalidateCache();
+      res.status(201).json({ success: true, data: result });
   } catch (error: any) {
     if (error.errors) return res.status(400).json({ success: false, error: error.errors });
     res.status(500).json({ success: false, message: error.message });
@@ -726,7 +739,8 @@ router.post("/positions", async (req, res) => {
     const validatedData = positionSchema.parse(req.body);
     // @ts-ignore
     const result = await PositionService.create(validatedData, req.user?.username);
-    res.status(201).json({ success: true, data: result });
+    OrganizationRegistryService.invalidateCache();
+      res.status(201).json({ success: true, data: result });
   } catch (error: any) {
     if (error.errors) return res.status(400).json({ success: false, error: error.errors });
     res.status(500).json({ success: false, message: error.message });

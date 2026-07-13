@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1783875336948,
-      "tag": "0000_true_the_anarchist",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1783875788468,
-      "tag": "0001_faulty_wallow",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1783878261956,
-      "tag": "0002_small_sheva_callister",
+      "when": 1783955844035,
+      "tag": "0000_ambiguous_violations",
       "breakpoints": true
     }
   ]
