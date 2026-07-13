@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import { Network, Activity, BarChart3, Layout, ShieldAlert } from 'lucide-react';
+import { 
+  Network, Activity, BarChart3, Layout, ShieldAlert, 
+  ChevronRight, RefreshCcw, Search, Plus, Download 
+} from 'lucide-react';
 import { OrganizationSummary } from '../components/OrgWorkspace/OrganizationSummary';
 import { OrganizationReadiness } from '../components/OrgWorkspace/OrganizationReadiness';
 import { OrganizationInsight } from '../components/OrgWorkspace/OrganizationInsight';
@@ -12,31 +15,62 @@ export function OrgWorkspaceView() {
   const [activeTab, setActiveTab] = useState('executive');
 
   return (
-    <div className="flex-1 flex flex-col h-screen overflow-hidden bg-slate-900">
+    <div className="flex-1 flex flex-col h-screen overflow-hidden bg-slate-50">
       {/* Header */}
-      <header className="h-16 flex items-center justify-between px-6 bg-slate-900 border-b border-slate-800 shrink-0">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
-            <Network className="w-5 h-5 text-blue-400" />
+      <header className="bg-white border-b border-slate-200 px-6 py-4 shrink-0">
+        <div className="flex items-center text-sm text-slate-500 mb-2">
+          <span>Enterprise Center</span>
+          <ChevronRight className="w-4 h-4 mx-1" />
+          <span className="font-medium text-blue-600">Organization Workspace</span>
+        </div>
+        
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center border border-blue-100">
+              <Network className="w-6 h-6" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Organization Workspace</h1>
+              <div className="text-sm text-slate-500 mt-0.5">Command Center & Visual Engine for Enterprise Structure</div>
+            </div>
           </div>
-          <div>
-            <h1 className="text-lg font-semibold text-white">Organization Workspace</h1>
-            <div className="text-sm text-slate-400">Command Center & Visual Engine</div>
+          
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input 
+                type="text" 
+                placeholder="Search organization..." 
+                className="pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64"
+              />
+            </div>
+            <button className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center gap-2">
+              <RefreshCcw className="w-4 h-4" />
+              <span className="hidden sm:inline">Refresh</span>
+            </button>
+            <button className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center gap-2">
+              <Download className="w-4 h-4" />
+              <span className="hidden sm:inline">Export</span>
+            </button>
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center gap-2">
+              <Plus className="w-4 h-4" />
+              Quick Action
+            </button>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
         
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
+        <div className="flex items-center gap-2 border-b border-slate-200 pb-px">
           <button
             onClick={() => setActiveTab('executive')}
-            className={`px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 transition-colors ${
+            className={`px-4 py-2.5 text-sm font-semibold rounded-t-lg border-b-2 transition-colors ${
               activeTab === 'executive' 
-                ? 'border-blue-500 text-blue-400 bg-blue-500/5' 
-                : 'border-transparent text-slate-400 hover:text-slate-300 hover:bg-slate-800'
+                ? 'border-blue-600 text-blue-700 bg-blue-50' 
+                : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             <div className="flex items-center gap-2">
@@ -46,10 +80,10 @@ export function OrgWorkspaceView() {
           </button>
           <button
             onClick={() => setActiveTab('explorer')}
-            className={`px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 transition-colors ${
+            className={`px-4 py-2.5 text-sm font-semibold rounded-t-lg border-b-2 transition-colors ${
               activeTab === 'explorer' 
-                ? 'border-blue-500 text-blue-400 bg-blue-500/5' 
-                : 'border-transparent text-slate-400 hover:text-slate-300 hover:bg-slate-800'
+                ? 'border-blue-600 text-blue-700 bg-blue-50' 
+                : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             <div className="flex items-center gap-2">
@@ -59,7 +93,11 @@ export function OrgWorkspaceView() {
           </button>
           <button
             onClick={() => setActiveTab('health')}
-            className={`px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 transition-colors ${activeTab === 'health' ? 'border-blue-500 text-blue-400 bg-blue-500/5' : 'border-transparent text-slate-400 hover:text-slate-300 hover:bg-slate-800'}`}
+            className={`px-4 py-2.5 text-sm font-semibold rounded-t-lg border-b-2 transition-colors ${
+              activeTab === 'health' 
+                ? 'border-blue-600 text-blue-700 bg-blue-50' 
+                : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+            }`}
           >
             <div className="flex items-center gap-2">
               <ShieldAlert className="w-4 h-4" />
@@ -72,8 +110,10 @@ export function OrgWorkspaceView() {
         {activeTab === 'executive' && (
           <div className="space-y-6 fade-in">
             <CEOView />
-            <OrganizationSummary />
-            <OrganizationReadiness />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <OrganizationSummary />
+              <OrganizationReadiness />
+            </div>
           </div>
         )}
 
@@ -94,7 +134,6 @@ export function OrgWorkspaceView() {
             <OrganizationHealth />
           </div>
         )}
-
       </div>
     </div>
   );
