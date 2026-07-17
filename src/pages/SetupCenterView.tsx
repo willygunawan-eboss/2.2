@@ -38,7 +38,7 @@ export function SetupCenterView({ onNavigate }: { onNavigate: (id: string) => vo
               progress: moduleMap.organization?.progress || 0,
               dependencies: moduleMap.organization?.dependencies || [],
               details: moduleMap.organization?.details || {},
-              path: 'settings'
+              path: 'org_workspace'
             },
             {
               id: 'hr',

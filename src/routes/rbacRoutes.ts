@@ -17,7 +17,7 @@ async function logAudit(action: string, entityType: string, entityId: string, de
     entityType,
     entityId,
     details: JSON.stringify(details),
-    performedBy: userId
+    actorId: userId
   });
 }
 
@@ -38,8 +38,8 @@ router.get('/roles', async (req, res) => {
 });
 
 router.post('/roles', requirePermission('CREATE_SETTINGS'), async (req, res) => {
-  const { name, groupId, description } = req.body;
-  const newRole = { id: randomUUID(), name, groupId, description };
+  const { name, groupId, description, code } = req.body;
+  const newRole = { id: randomUUID(), name, groupId, description, code: code || `ROLE_${Date.now()}` };
   await db.insert(roles).values(newRole);
   res.json({ success: true, data: newRole });
 });

@@ -136,7 +136,7 @@ function GenericCrud({ endpoint }: { endpoint: string }) {
       case 'teams': return ['code', 'name', 'sectionId', 'isActive'];
       case 'job-grades': return ['code', 'name', 'level', 'isActive'];
       case 'positions': return ['code', 'name', 'departmentId', 'jobGradeId', 'isActive'];
-      case 'employees': return ['employeeNumber', 'name', 'email', 'positionId', 'status'];
+      case 'employees': return ['employeeNumber', 'name', 'email', 'status'];
       default: return [];
     }
   };
@@ -187,7 +187,7 @@ function GenericCrud({ endpoint }: { endpoint: string }) {
                     if (c === 'sectionId') val = references.sections?.find((x:any) => x.id === val)?.name || val;
                     if (c === 'teamId') val = references.teams?.find((x:any) => x.id === val)?.name || val;
                     if (c === 'jobGradeId') val = references.jobGrades?.find((x:any) => x.id === val)?.name || val;
-                    if (c === 'positionId') val = references.positions?.find((x:any) => x.id === val)?.name || val;
+                    // position mapping removed
                     if (c === 'branchId') val = references.branches?.find((x:any) => x.id === val)?.name || val;
                     return <td key={c} className="px-6 py-3 text-slate-700">{val}</td>
                   })}
@@ -239,7 +239,7 @@ function GenericCrud({ endpoint }: { endpoint: string }) {
                     if (c === 'sectionId') opts = references.sections || [];
                     if (c === 'teamId') opts = references.teams || [];
                     if (c === 'jobGradeId') opts = references.jobGrades || [];
-                    if (c === 'positionId') opts = references.positions || [];
+                    // position opts removed
                     if (c === 'branchId') opts = references.branches || [];
                     return (
                       <div key={c} className="space-y-1.5">

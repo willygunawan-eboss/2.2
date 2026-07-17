@@ -5,7 +5,7 @@ import {
   real,
   index,
 } from "drizzle-orm/sqlite-core";
-import { sql } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
@@ -275,6 +275,8 @@ export const jobGrades = sqliteTable("job_grades", {
   maximumSalary: real("maximum_salary"),
   currency: text("currency").default("IDR"),
   description: text("description"),
+  companyId: text("company_id").references(() => companies.id),
+  
   isActive: integer("is_active", { mode: "boolean" }).default(true),
   createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
   updatedAt: text("updated_at"),
@@ -290,6 +292,7 @@ export const positions = sqliteTable(
     id: text("id").primaryKey(), // UUID
     code: text("code").notNull().unique(),
     name: text("name").notNull(),
+    jobId: text("job_id").references(() => jobs.id),
     companyId: text("company_id")
       .notNull()
       .references(() => companies.id),
@@ -302,9 +305,9 @@ export const positions = sqliteTable(
     departmentId: text("department_id")
       .notNull()
       .references(() => departments.id),
-    sectionId: text("section_id").references(() => sections.id),
-    teamId: text("team_id").references(() => teams.id),
-    jobGradeId: text("job_grade_id")
+        sectionId: text("section_id").references(() => sections.id),
+  teamId: text("team_id").references(() => teams.id),
+  jobGradeId: text("job_grade_id")
       .notNull()
       .references(() => jobGrades.id),
     parentPositionId: text("parent_position_id").references(
@@ -356,19 +359,42 @@ export const positions = sqliteTable(
 );
 
 export const employees = sqliteTable("employees", {
+  sectionId: text("section_id").references(() => sections.id),
+  teamId: text("team_id").references(() => teams.id),
   id: text("id").primaryKey(), // UUID
   employeeNumber: text("employee_number").notNull().unique(),
+  nationalIdentityNumber: text("national_identity_number"),
   name: text("name").notNull(),
-  email: text("email").notNull(),
-  phone: text("phone"),
-  companyId: text("company_id").references(() => companies.id),
-  branchId: text("branch_id").references(() => branches.id),
-  departmentId: text("department_id").references(() => departments.id),
-  sectionId: text("section_id").references(() => sections.id),
-  positionId: text("position_id").references(() => positions.id),
-  status: text("status").notNull().default("Active"),
+  preferredName: text("preferred_name"),
+  birthPlace: text("birth_place"),
+  birthDate: text("birth_date"),
+  gender: text("gender"),
+  religion: text("religion"),
+  nationality: text("nationality"),
+  maritalStatus: text("marital_status"),
+  bloodType: text("blood_type"),
+  photo: text("photo"),
+  digitalSignature: text("digital_signature"),
+  email: text("email"),
+  personalEmail: text("personal_email"),
+  mobilePhone: text("mobile_phone"),
+  homePhone: text("home_phone"),
+  emergencyContactName: text("emergency_contact_name"),
+  emergencyContactNumber: text("emergency_contact_number"),
+  
+  employmentStatus: text("employment_status"), // Master Reference (Probation, Permanent, Contract, etc.)
+  employmentType: text("employment_type"),
+  hireDate: text("hire_date"),
   joinDate: text("join_date"),
-  avatar: text("avatar"),
+  confirmationDate: text("confirmation_date"),
+  contractStartDate: text("contract_start_date"),
+  contractEndDate: text("contract_end_date"),
+  terminationDate: text("termination_date"),
+  
+  
+  
+  status: text("status").notNull().default("Active"),
+  
   createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
   updatedAt: text("updated_at"),
   createdBy: text("created_by"),
@@ -423,20 +449,19 @@ export const jobGradesRelations = relations(jobGrades, ({ many }) => ({
   positions: many(positions),
 }));
 
-export const positionsRelations = relations(positions, ({ one, many }) => ({
+export const positionsRelations = relations(positions, ({ one }) => ({
+  company: one(companies, {
+    fields: [positions.companyId],
+    references: [companies.id],
+  }),
   department: one(departments, {
     fields: [positions.departmentId],
     references: [departments.id],
   }),
-  section: one(sections, {
-    fields: [positions.sectionId],
-    references: [sections.id],
+  job: one(jobs, {
+    fields: [positions.jobId],
+    references: [jobs.id],
   }),
-  jobGrade: one(jobGrades, {
-    fields: [positions.jobGradeId],
-    references: [jobGrades.id],
-  }),
-  employees: many(employees),
 }));
 
 export const attendance = sqliteTable("attendance", {
@@ -694,6 +719,150 @@ export const employeeShifts = sqliteTable("employee_shifts", {
   endTime: text("end_time").notNull(),
 });
 
+
+// ==========================================
+// ENTERPRISE EMPLOYMENT DOMAIN (PHASE 3)
+// ==========================================
+export const empPlatform = sqliteTable("emp_platform", {
+  id: text("id").primaryKey(),
+  employeeNumber: text("employee_number").notNull().unique(),
+  fullName: text("full_name").notNull(),
+  organizationId: text("organization_id").references(() => orgPlatform.id),
+  employmentType: text("employment_type").notNull(), // PERMANENT, CONTRACT, PROBATION, INTERNSHIP
+  status: text("status").notNull(), // ACTIVE, INACTIVE, SUSPENDED, TERMINATED
+  joinDate: text("join_date").notNull(),
+  terminationDate: text("termination_date"),
+  isActive: integer("is_active", { mode: "boolean" }).default(true),
+  isDeleted: integer("is_deleted", { mode: "boolean" }).default(false),
+  version: integer("version").notNull().default(1),
+  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at"),
+  deletedAt: text("deleted_at")
+});
+
+export const empPlatformRelations = relations(empPlatform, ({ one, many }) => ({
+  organization: one(orgPlatform, { fields: [empPlatform.organizationId], references: [orgPlatform.id] }),
+  assignments: many(empAssignment, { relationName: "assignment_employment" })
+}));
+
+// ==========================================
+
+export const empAssignment = sqliteTable("emp_assignment", {
+  id: text("id").primaryKey(),
+  employmentId: text("employment_id").notNull().references(() => empPlatform.id),
+  organizationId: text("organization_id").notNull().references(() => orgPlatform.id),
+  positionId: text("position_id").notNull().references(() => posPlatform.id),
+  managerId: text("manager_id").references(() => empPlatform.id),
+  supervisorId: text("supervisor_id").references(() => empPlatform.id),
+  effectiveDate: text("effective_date").notNull(),
+  endDate: text("end_date"),
+  status: text("status").notNull(), // ACTIVE, INACTIVE
+  isActive: integer("is_active", { mode: "boolean" }).default(true),
+  isDeleted: integer("is_deleted", { mode: "boolean" }).default(false),
+  version: integer("version").notNull().default(1),
+  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at"),
+  deletedAt: text("deleted_at")
+});
+
+export const empAssignmentRelations = relations(empAssignment, ({ one }) => ({
+  employment: one(empPlatform, { fields: [empAssignment.employmentId], references: [empPlatform.id], relationName: "assignment_employment" }),
+  organization: one(orgPlatform, { fields: [empAssignment.organizationId], references: [orgPlatform.id], relationName: "assignment_organization" }),
+  position: one(posPlatform, { fields: [empAssignment.positionId], references: [posPlatform.id], relationName: "assignment_position" }),
+  
+  
+}));
+
+// ==========================================
+
+
+// ==========================================
+// ENTERPRISE JOB ARCHITECTURE DOMAIN (PHASE 3)
+// ==========================================
+export const jobFamily = sqliteTable("job_family", {
+  id: text("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  name: text("name").notNull(),
+  description: text("description"),
+  isActive: integer("is_active", { mode: "boolean" }).default(true),
+  isDeleted: integer("is_deleted", { mode: "boolean" }).default(false),
+  version: integer("version").notNull().default(1),
+  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at"),
+  deletedAt: text("deleted_at")
+});
+
+export const jobGrade = sqliteTable("job_grade", {
+  id: text("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  name: text("name").notNull(),
+  level: integer("level").notNull(),
+  description: text("description"),
+  isActive: integer("is_active", { mode: "boolean" }).default(true),
+  isDeleted: integer("is_deleted", { mode: "boolean" }).default(false),
+  version: integer("version").notNull().default(1),
+  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at"),
+  deletedAt: text("deleted_at")
+});
+
+export const jobPlatform = sqliteTable("job_platform", {
+  id: text("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  name: text("name").notNull(),
+  jobFamilyId: text("job_family_id").notNull().references(() => jobFamily.id),
+  sectionId: text("section_id").references(() => sections.id),
+  teamId: text("team_id").references(() => teams.id),
+  jobGradeId: text("job_grade_id").notNull().references(() => jobGrade.id),
+  description: text("description"),
+  isActive: integer("is_active", { mode: "boolean" }).default(true),
+  isDeleted: integer("is_deleted", { mode: "boolean" }).default(false),
+  version: integer("version").notNull().default(1),
+  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at"),
+  deletedAt: text("deleted_at")
+});
+
+export const jobFamilyRelations = relations(jobFamily, ({ many }) => ({
+  jobs: many(jobPlatform)
+}));
+
+export const jobGradeRelations = relations(jobGrade, ({ many }) => ({
+  jobs: many(jobPlatform)
+}));
+
+export const jobPlatformRelations = relations(jobPlatform, ({ one, many }) => ({
+  jobFamily: one(jobFamily, { fields: [jobPlatform.jobFamilyId], references: [jobFamily.id] }),
+  jobGrade: one(jobGrade, { fields: [jobPlatform.jobGradeId], references: [jobGrade.id] }),
+  positions: many(posPlatform)
+}));
+
+// ==========================================
+// ENTERPRISE POSITION DOMAIN (PHASE 3)
+// ==========================================
+export const posPlatform = sqliteTable("pos_platform", {
+  id: text("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  name: text("name").notNull(),
+  companyId: text("company_id").references(() => orgPlatform.id),
+  jobId: text("job_id").references(() => jobPlatform.id),
+  employmentType: text("employment_type"), // E.g., PERMANENT, CONTRACT, ALL
+  status: text("status").notNull().default("ACTIVE"),
+  effectiveDate: text("effective_date").notNull(),
+  isActive: integer("is_active", { mode: "boolean" }).default(true),
+  isDeleted: integer("is_deleted", { mode: "boolean" }).default(false),
+  version: integer("version").notNull().default(1),
+  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at"),
+  deletedAt: text("deleted_at")
+});
+
+export const posPlatformRelations = relations(posPlatform, ({ one, many }) => ({
+  company: one(orgPlatform, { fields: [posPlatform.companyId], references: [orgPlatform.id] }),
+  job: one(jobPlatform, { fields: [posPlatform.jobId], references: [jobPlatform.id] }),
+  assignments: many(empAssignment, { relationName: "assignment_position" })
+}));
+
 // ==========================================
 // ENTERPRISE ASSET DOMAIN
 // ==========================================
@@ -730,8 +899,8 @@ export const assetModels = sqliteTable("asset_models", {
 
 export const assetLocations = sqliteTable("asset_locations", {
   id: text("id").primaryKey(),
-  name: text("name").notNull(),
   branchId: text("branch_id").references(() => branches.id),
+  name: text("name").notNull(),
   address: text("address"),
   isDeleted: integer("is_deleted", { mode: "boolean" }).default(false),
   createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
@@ -751,8 +920,7 @@ export const assets = sqliteTable(
     contractId: text("contract_id").references(() => contracts.id),
     projectId: text("project_id").references(() => projects.id),
     ownerCompanyId: text("owner_company_id").references(() => companies.id),
-    branchId: text("branch_id").references(() => branches.id),
-    categoryId: text("category_id").references(() => assetCategories.id),
+      categoryId: text("category_id").references(() => assetCategories.id),
     modelId: text("model_id").references(() => assetModels.id),
     manufacturerId: text("manufacturer_id").references(() => manufacturers.id),
     vendor: text("vendor"),
@@ -766,6 +934,7 @@ export const assets = sqliteTable(
     status: text("status").notNull().default("Active"),
     condition: text("condition"),
     locationId: text("location_id").references(() => assetLocations.id),
+  departmentId: text("department_id").references(() => departments.id),
     rack: text("rack"),
     room: text("room"),
     gps: text("gps"),
@@ -1084,6 +1253,7 @@ export const customers = sqliteTable(
   "customers",
   {
     id: text("id").primaryKey(),
+    branchId: text("branch_id").references(() => branches.id),
     code: text("code").notNull().unique(),
     name: text("name").notNull(),
     legalName: text("legal_name"),
@@ -1100,9 +1270,9 @@ export const customers = sqliteTable(
     paymentTermId: text("payment_term_id"),
     salespersonId: text("salesperson_id").references(() => employees.id),
     accountManagerId: text("account_manager_id").references(() => employees.id),
-    branchId: text("branch_id").references(() => branches.id),
-    companyId: text("company_id").references(() => companies.id),
-
+  
+  companyId: text("company_id").references(() => companies.id),
+    
     // Legacy fields for compatibility if needed, or we can drop them. We keep pic just in case.
     pic: text("pic"),
     address: text("address"),
@@ -1239,1168 +1409,28 @@ export const customerRelations = relations(customers, ({ many, one }) => ({
     fields: [customers.accountManagerId],
     references: [employees.id],
   }),
-  branch: one(branches, {
-    fields: [customers.branchId],
-    references: [branches.id],
-  }),
-  company: one(companies, {
-    fields: [customers.companyId],
-    references: [companies.id],
-  }),
-  // Invoices, Orders, Projects, Assets, Tickets will be linked if not already
 }));
-
-export const customerContactsRelations = relations(
-  customerContacts,
-  ({ one, many }) => ({
-    customer: one(customers, {
-      fields: [customerContacts.customerId],
-      references: [customers.id],
-    }),
-    communications: many(customerCommunications),
-  }),
-);
-
-export const customerAddressesRelations = relations(
-  customerAddresses,
-  ({ one }) => ({
-    customer: one(customers, {
-      fields: [customerAddresses.customerId],
-      references: [customers.id],
-    }),
-  }),
-);
-
-export const customerCommunicationsRelations = relations(
-  customerCommunications,
-  ({ one }) => ({
-    customer: one(customers, {
-      fields: [customerCommunications.customerId],
-      references: [customers.id],
-    }),
-    contact: one(customerContacts, {
-      fields: [customerCommunications.contactId],
-      references: [customerContacts.id],
-    }),
-    employee: one(employees, {
-      fields: [customerCommunications.employeeId],
-      references: [employees.id],
-    }),
-  }),
-);
-
-export const customerBankAccountsRelations = relations(
-  customerBankAccounts,
-  ({ one }) => ({
-    customer: one(customers, {
-      fields: [customerBankAccounts.customerId],
-      references: [customers.id],
-    }),
-  }),
-);
-
-export const customerDocumentsRelations = relations(
-  customerDocuments,
-  ({ one }) => ({
-    customer: one(customers, {
-      fields: [customerDocuments.customerId],
-      references: [customers.id],
-    }),
-  }),
-);
-
-// We also need to add relations in existing tables to customer if we want.
-// Drizzle supports multiple definitions or we can just keep them as is.
-
-export const leads = sqliteTable("leads", {
-  id: text("id").primaryKey(), // UUID
-  companyName: text("company_name").notNull(),
-  pic: text("pic").notNull(),
-  email: text("email").notNull(),
-  phone: text("phone").notNull(),
-  productInterest: text("product_interest"),
-  source: text("source").notNull(), // Website, Referral, etc.
-  status: text("status").notNull(), // New, Contacted, Qualified, Proposal, Negotiation, Won, Lost
-  score: integer("score").default(0),
-  ownerId: text("owner_id").references(() => employees.id),
-  estimatedValue: integer("estimated_value").default(0),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-});
-
-export const activities = sqliteTable("activities", {
-  id: text("id").primaryKey(), // UUID
-  type: text("type").notNull(), // Call, Email, Meeting, WhatsApp
-  referenceId: text("reference_id").notNull(), // leadId or customerId
-  referenceType: text("reference_type").notNull(), // Lead, Customer
-  date: text("date").notNull(),
-  notes: text("notes").notNull(),
-  performedById: text("performed_by_id")
-    .notNull()
-    .references(() => employees.id),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-});
-
-// --- REFERENCE ENGINE ---
-export const referenceGroups = sqliteTable("reference_groups", {
-  id: text("id").primaryKey(), // UUID
-  code: text("code").notNull().unique(),
-  name: text("name").notNull(),
-  description: text("description"),
-  icon: text("icon"),
-  sortOrder: integer("sort_order").default(0),
-  isSystem: integer("is_system", { mode: "boolean" }).default(false),
-  isActive: integer("is_active", { mode: "boolean" }).default(true),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at"),
-  createdBy: text("created_by"),
-  updatedBy: text("updated_by"),
-  deletedAt: text("deleted_at"),
-  deletedBy: text("deleted_by"),
-});
-
-export const referenceValues = sqliteTable("reference_values", {
-  id: text("id").primaryKey(), // UUID
-  groupId: text("group_id")
-    .notNull()
-    .references(() => referenceGroups.id),
-  code: text("code").notNull(),
-  name: text("name").notNull(),
-  description: text("description"),
-  color: text("color"),
-  icon: text("icon"),
-  sortOrder: integer("sort_order").default(0),
-  metadata: text("metadata"), // JSON
-  isDefault: integer("is_default", { mode: "boolean" }).default(false),
-  isSystem: integer("is_system", { mode: "boolean" }).default(false),
-  isActive: integer("is_active", { mode: "boolean" }).default(true),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at"),
-  createdBy: text("created_by"),
-  updatedBy: text("updated_by"),
-  deletedAt: text("deleted_at"),
-  deletedBy: text("deleted_by"),
-});
-
-export const referenceGroupsRelations = relations(
-  referenceGroups,
-  ({ many }) => ({
-    values: many(referenceValues),
-  }),
-);
-
-export const referenceValuesRelations = relations(
-  referenceValues,
-  ({ one }) => ({
-    group: one(referenceGroups, {
-      fields: [referenceValues.groupId],
-      references: [referenceGroups.id],
-    }),
-  }),
-);
-
-// --- ENTERPRISE ITSM (HELPDESK & SUPPORT) SCHEMA ---
-
-export const ticketCategories = sqliteTable("ticket_categories", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description"),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at"),
-  createdBy: text("created_by"),
-  updatedBy: text("updated_by"),
-  deletedAt: text("deleted_at"),
-  deletedBy: text("deleted_by"),
-});
-
-export const ticketSubCategories = sqliteTable("ticket_sub_categories", {
-  id: text("id").primaryKey(),
-  categoryId: text("category_id")
-    .notNull()
-    .references(() => ticketCategories.id),
-  name: text("name").notNull(),
-  description: text("description"),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at"),
-  createdBy: text("created_by"),
-  updatedBy: text("updated_by"),
-  deletedAt: text("deleted_at"),
-  deletedBy: text("deleted_by"),
-});
-
-export const ticketPriorities = sqliteTable("ticket_priorities", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(), // Low, Medium, High, Critical
-  level: integer("level").notNull(),
-  color: text("color"),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at"),
-  createdBy: text("created_by"),
-  updatedBy: text("updated_by"),
-  deletedAt: text("deleted_at"),
-  deletedBy: text("deleted_by"),
-});
-
-export const ticketImpacts = sqliteTable("ticket_impacts", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  level: integer("level").notNull(),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at"),
-  createdBy: text("created_by"),
-  updatedBy: text("updated_by"),
-  deletedAt: text("deleted_at"),
-  deletedBy: text("deleted_by"),
-});
-
-export const ticketUrgencies = sqliteTable("ticket_urgencies", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  level: integer("level").notNull(),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at"),
-  createdBy: text("created_by"),
-  updatedBy: text("updated_by"),
-  deletedAt: text("deleted_at"),
-  deletedBy: text("deleted_by"),
-});
-
-export const ticketStatuses = sqliteTable("ticket_statuses", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  isClosed: integer("is_closed", { mode: "boolean" }).default(false),
-  color: text("color"),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at"),
-  createdBy: text("created_by"),
-  updatedBy: text("updated_by"),
-  deletedAt: text("deleted_at"),
-  deletedBy: text("deleted_by"),
-});
-
-export const slas = sqliteTable("slas", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description"),
-  responseTimeMinutes: integer("response_time_minutes").notNull(),
-  resolutionTimeMinutes: integer("resolution_time_minutes").notNull(),
-  priorityId: text("priority_id").references(() => ticketPriorities.id),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at"),
-  createdBy: text("created_by"),
-  updatedBy: text("updated_by"),
-  deletedAt: text("deleted_at"),
-  deletedBy: text("deleted_by"),
-});
-
-export const tickets = sqliteTable("tickets", {
-  id: text("id").primaryKey(),
-  ticketNumber: text("ticket_number").notNull().unique(),
-  title: text("title").notNull(),
-  description: text("description").notNull(),
-  customerId: text("customer_id").references(() => customers.id),
-  contractId: text("contract_id"),
-  assetId: text("asset_id").references(() => assets.id),
-  categoryId: text("category_id").references(() => ticketCategories.id),
-  subCategoryId: text("sub_category_id").references(
-    () => ticketSubCategories.id,
-  ),
-  priorityId: text("priority_id").references(() => ticketPriorities.id),
-  impactId: text("impact_id").references(() => ticketImpacts.id),
-  urgencyId: text("urgency_id").references(() => ticketUrgencies.id),
-  statusId: text("status_id").references(() => ticketStatuses.id),
-  slaId: text("sla_id").references(() => slas.id),
-  assignedTo: text("assigned_to").references(() => employees.id),
-  reportedBy: text("reported_by"),
-  expectedResolutionDate: text("expected_resolution_date"),
-  actualResolutionDate: text("actual_resolution_date"),
-  resolutionNotes: text("resolution_notes"),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at"),
-  createdBy: text("created_by"),
-  updatedBy: text("updated_by"),
-  deletedAt: text("deleted_at"),
-  deletedBy: text("deleted_by"),
-});
-
-export const ticketAttachments = sqliteTable("ticket_attachments", {
-  id: text("id").primaryKey(),
-  ticketId: text("ticket_id")
-    .notNull()
-    .references(() => tickets.id),
-  fileName: text("file_name").notNull(),
-  fileUrl: text("file_url").notNull(),
-  fileType: text("file_type"),
-  fileSize: integer("file_size"),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at"),
-  createdBy: text("created_by"),
-  updatedBy: text("updated_by"),
-  deletedAt: text("deleted_at"),
-  deletedBy: text("deleted_by"),
-});
-
-export const ticketComments = sqliteTable("ticket_comments", {
-  id: text("id").primaryKey(),
-  ticketId: text("ticket_id")
-    .notNull()
-    .references(() => tickets.id),
-  comment: text("comment").notNull(),
-  isInternal: integer("is_internal", { mode: "boolean" }).default(false),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at"),
-  createdBy: text("created_by"),
-  updatedBy: text("updated_by"),
-  deletedAt: text("deleted_at"),
-  deletedBy: text("deleted_by"),
-});
-
-export const ticketWorklogs = sqliteTable("ticket_worklogs", {
-  id: text("id").primaryKey(),
-  ticketId: text("ticket_id")
-    .notNull()
-    .references(() => tickets.id),
-  employeeId: text("employee_id")
-    .notNull()
-    .references(() => employees.id),
-  timeSpentMinutes: integer("time_spent_minutes").notNull(),
-  workDate: text("work_date").notNull(),
-  description: text("description").notNull(),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at"),
-  createdBy: text("created_by"),
-  updatedBy: text("updated_by"),
-  deletedAt: text("deleted_at"),
-  deletedBy: text("deleted_by"),
-});
-
-export const ticketTimelines = sqliteTable("ticket_timelines", {
-  id: text("id").primaryKey(),
-  ticketId: text("ticket_id")
-    .notNull()
-    .references(() => tickets.id),
-  action: text("action").notNull(),
-  description: text("description"),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at"),
-  createdBy: text("created_by"),
-  updatedBy: text("updated_by"),
-  deletedAt: text("deleted_at"),
-  deletedBy: text("deleted_by"),
-});
-
-export const ticketWatchers = sqliteTable("ticket_watchers", {
-  id: text("id").primaryKey(),
-  ticketId: text("ticket_id")
-    .notNull()
-    .references(() => tickets.id),
-  employeeId: text("employee_id")
-    .notNull()
-    .references(() => employees.id),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at"),
-  createdBy: text("created_by"),
-  updatedBy: text("updated_by"),
-  deletedAt: text("deleted_at"),
-  deletedBy: text("deleted_by"),
-});
-
-export const tags = sqliteTable("tags", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull().unique(),
-  color: text("color"),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at"),
-  createdBy: text("created_by"),
-  updatedBy: text("updated_by"),
-  deletedAt: text("deleted_at"),
-  deletedBy: text("deleted_by"),
-});
-
-export const ticketTags = sqliteTable("ticket_tags", {
-  id: text("id").primaryKey(),
-  ticketId: text("ticket_id")
-    .notNull()
-    .references(() => tickets.id),
-  tagId: text("tag_id")
-    .notNull()
-    .references(() => tags.id),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at"),
-  createdBy: text("created_by"),
-  updatedBy: text("updated_by"),
-  deletedAt: text("deleted_at"),
-  deletedBy: text("deleted_by"),
-});
-
-export const ticketAudits = sqliteTable("ticket_audits", {
-  id: text("id").primaryKey(),
-  ticketId: text("ticket_id")
-    .notNull()
-    .references(() => tickets.id),
-  fieldName: text("field_name").notNull(),
-  oldValue: text("old_value"),
-  newValue: text("new_value"),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at"),
-  createdBy: text("created_by"),
-  updatedBy: text("updated_by"),
-  deletedAt: text("deleted_at"),
-  deletedBy: text("deleted_by"),
-});
-
-// --- ENTERPRISE ITSM RELATIONS ---
-import { relations } from "drizzle-orm";
-
-export const ticketsRelations = relations(tickets, ({ one, many }) => ({
-  contract: one(contracts, {
-    fields: [tickets.contractId],
-    references: [contracts.id],
-  }),
-  customer: one(customers, {
-    fields: [tickets.customerId],
-    references: [customers.id],
-  }),
-  asset: one(assets, { fields: [tickets.assetId], references: [assets.id] }),
-  category: one(ticketCategories, {
-    fields: [tickets.categoryId],
-    references: [ticketCategories.id],
-  }),
-  subCategory: one(ticketSubCategories, {
-    fields: [tickets.subCategoryId],
-    references: [ticketSubCategories.id],
-  }),
-  priority: one(ticketPriorities, {
-    fields: [tickets.priorityId],
-    references: [ticketPriorities.id],
-  }),
-  impact: one(ticketImpacts, {
-    fields: [tickets.impactId],
-    references: [ticketImpacts.id],
-  }),
-  urgency: one(ticketUrgencies, {
-    fields: [tickets.urgencyId],
-    references: [ticketUrgencies.id],
-  }),
-  status: one(ticketStatuses, {
-    fields: [tickets.statusId],
-    references: [ticketStatuses.id],
-  }),
-  sla: one(slas, { fields: [tickets.slaId], references: [slas.id] }),
-  assignedEmployee: one(employees, {
-    fields: [tickets.assignedTo],
-    references: [employees.id],
-  }),
-  reportedEmployee: one(employees, {
-    fields: [tickets.reportedBy],
-    references: [employees.id],
-  }),
-  comments: many(ticketComments),
-  worklogs: many(ticketWorklogs),
-  attachments: many(ticketAttachments),
-  timelines: many(ticketTimelines),
-  watchers: many(ticketWatchers),
-  tags: many(ticketTags),
-  audits: many(ticketAudits),
-}));
-
-export const ticketCategoriesRelations = relations(
-  ticketCategories,
-  ({ many }) => ({
-    subCategories: many(ticketSubCategories),
-    tickets: many(tickets),
-  }),
-);
-
-export const ticketSubCategoriesRelations = relations(
-  ticketSubCategories,
-  ({ one, many }) => ({
-    category: one(ticketCategories, {
-      fields: [ticketSubCategories.categoryId],
-      references: [ticketCategories.id],
-    }),
-    tickets: many(tickets),
-  }),
-);
-
-export const ticketCommentsRelations = relations(ticketComments, ({ one }) => ({
-  ticket: one(tickets, {
-    fields: [ticketComments.ticketId],
-    references: [tickets.id],
-  }),
-  createdByEmployee: one(employees, {
-    fields: [ticketComments.createdBy],
-    references: [employees.id],
-  }),
-}));
-
-export const ticketWorklogsRelations = relations(ticketWorklogs, ({ one }) => ({
-  ticket: one(tickets, {
-    fields: [ticketWorklogs.ticketId],
-    references: [tickets.id],
-  }),
-  employee: one(employees, {
-    fields: [ticketWorklogs.employeeId],
-    references: [employees.id],
-  }),
-}));
-
-export const ticketAttachmentsRelations = relations(
-  ticketAttachments,
-  ({ one }) => ({
-    ticket: one(tickets, {
-      fields: [ticketAttachments.ticketId],
-      references: [tickets.id],
-    }),
-    createdByEmployee: one(employees, {
-      fields: [ticketAttachments.createdBy],
-      references: [employees.id],
-    }),
-  }),
-);
-
-export const ticketTimelinesRelations = relations(
-  ticketTimelines,
-  ({ one }) => ({
-    ticket: one(tickets, {
-      fields: [ticketTimelines.ticketId],
-      references: [tickets.id],
-    }),
-    createdByEmployee: one(employees, {
-      fields: [ticketTimelines.createdBy],
-      references: [employees.id],
-    }),
-  }),
-);
-
-export const ticketWatchersRelations = relations(ticketWatchers, ({ one }) => ({
-  ticket: one(tickets, {
-    fields: [ticketWatchers.ticketId],
-    references: [tickets.id],
-  }),
-  employee: one(employees, {
-    fields: [ticketWatchers.employeeId],
-    references: [employees.id],
-  }),
-}));
-
-export const ticketTagsRelations = relations(ticketTags, ({ one }) => ({
-  ticket: one(tickets, {
-    fields: [ticketTags.ticketId],
-    references: [tickets.id],
-  }),
-  tag: one(tags, { fields: [ticketTags.tagId], references: [tags.id] }),
-}));
-
-export const tagsRelations = relations(tags, ({ many }) => ({
-  ticketTags: many(ticketTags),
-}));
-
-export const slasRelations = relations(slas, ({ one, many }) => ({
-  priority: one(ticketPriorities, {
-    fields: [slas.priorityId],
-    references: [ticketPriorities.id],
-  }),
-  tickets: many(tickets),
-}));
-
-// --- ENTERPRISE RBAC & PERMISSION ENGINE ---
-export const roleGroups = sqliteTable("role_groups", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull().unique(),
-  description: text("description"),
-  isActive: integer("is_active", { mode: "boolean" }).default(true),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at"),
-  createdBy: text("created_by"),
-  updatedBy: text("updated_by"),
-  deletedAt: text("deleted_at"),
-  deletedBy: text("deleted_by"),
-});
-
-export const roles = sqliteTable("roles", {
-  id: text("id").primaryKey(),
-  groupId: text("group_id")
-    .notNull()
-    .references(() => roleGroups.id),
-  name: text("name").notNull().unique(),
-  description: text("description"),
-  isSystem: integer("is_system", { mode: "boolean" }).default(false),
-  isActive: integer("is_active", { mode: "boolean" }).default(true),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at"),
-  createdBy: text("created_by"),
-  updatedBy: text("updated_by"),
-  deletedAt: text("deleted_at"),
-  deletedBy: text("deleted_by"),
-});
-
-export const permissions = sqliteTable("permissions", {
-  id: text("id").primaryKey(),
-  module: text("module").notNull(), // e.g., Dashboard, Ticket, Invoice
-  action: text("action").notNull(), // e.g., View, Create, Update, Delete, Approve
-  name: text("name").notNull(),
-  description: text("description"),
-  isSystem: integer("is_system", { mode: "boolean" }).default(false),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-});
-
-export const rolePermissions = sqliteTable("role_permissions", {
-  id: text("id").primaryKey(),
-  roleId: text("role_id")
-    .notNull()
-    .references(() => roles.id),
-  permissionId: text("permission_id")
-    .notNull()
-    .references(() => permissions.id),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  createdBy: text("created_by"),
-});
-
-export const userRoles = sqliteTable("user_roles", {
-  id: text("id").primaryKey(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => users.id),
-  roleId: text("role_id")
-    .notNull()
-    .references(() => roles.id),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  createdBy: text("created_by"),
-});
-
-export const dataScopes = sqliteTable("data_scopes", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull().unique(), // e.g., Self, Department, Division, Branch, Company, Global
-  description: text("description"),
-  level: integer("level").notNull(), // lower means more restricted
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-});
-
-export const roleDataScopes = sqliteTable("role_data_scopes", {
-  id: text("id").primaryKey(),
-  roleId: text("role_id")
-    .notNull()
-    .references(() => roles.id),
-  module: text("module").notNull(),
-  scopeId: text("scope_id")
-    .notNull()
-    .references(() => dataScopes.id),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-});
-
-export const menuPermissions = sqliteTable("menu_permissions", {
-  id: text("id").primaryKey(),
-  roleId: text("role_id")
-    .notNull()
-    .references(() => roles.id),
-  menu: text("menu").notNull(), // e.g., Dashboard, CRM, Sales, etc.
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-});
-
-export const approvalLevels = sqliteTable("approval_levels", {
-  id: text("id").primaryKey(),
-  module: text("module").notNull(), // e.g., Purchase, Invoice
-  minAmount: integer("min_amount").notNull(),
-  maxAmount: integer("max_amount"),
-  roleId: text("role_id")
-    .notNull()
-    .references(() => roles.id),
-  levelOrder: integer("level_order").notNull(),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-});
-
-export const auditPermissions = sqliteTable("audit_permissions", {
-  id: text("id").primaryKey(),
-  action: text("action").notNull(), // e.g., GRANT_PERMISSION, REVOKE_PERMISSION, CHANGE_APPROVAL
-  entityType: text("entity_type").notNull(), // e.g., Role, ApprovalLevel
-  entityId: text("entity_id").notNull(),
-  details: text("details"), // JSON string
-  performedBy: text("performed_by")
-    .notNull()
-    .references(() => users.id),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-});
-
-// RBAC Relations
-export const roleGroupsRelations = relations(roleGroups, ({ many }) => ({
-  roles: many(roles),
-}));
-
-export const rolesRelations = relations(roles, ({ one, many }) => ({
-  group: one(roleGroups, {
-    fields: [roles.groupId],
-    references: [roleGroups.id],
-  }),
-  rolePermissions: many(rolePermissions),
-  userRoles: many(userRoles),
-  menuPermissions: many(menuPermissions),
-  roleDataScopes: many(roleDataScopes),
-  approvalLevels: many(approvalLevels),
-}));
-
-export const permissionsRelations = relations(permissions, ({ many }) => ({
-  rolePermissions: many(rolePermissions),
-}));
-
-export const rolePermissionsRelations = relations(
-  rolePermissions,
-  ({ one }) => ({
-    role: one(roles, {
-      fields: [rolePermissions.roleId],
-      references: [roles.id],
-    }),
-    permission: one(permissions, {
-      fields: [rolePermissions.permissionId],
-      references: [permissions.id],
-    }),
-  }),
-);
-
-export const userRolesRelations = relations(userRoles, ({ one }) => ({
-  user: one(users, { fields: [userRoles.userId], references: [users.id] }),
-  role: one(roles, { fields: [userRoles.roleId], references: [roles.id] }),
-}));
-
-export const dataScopesRelations = relations(dataScopes, ({ many }) => ({
-  roleDataScopes: many(roleDataScopes),
-}));
-
-export const roleDataScopesRelations = relations(roleDataScopes, ({ one }) => ({
-  role: one(roles, { fields: [roleDataScopes.roleId], references: [roles.id] }),
-  scope: one(dataScopes, {
-    fields: [roleDataScopes.scopeId],
-    references: [dataScopes.id],
-  }),
-}));
-
-export const menuPermissionsRelations = relations(
-  menuPermissions,
-  ({ one }) => ({
-    role: one(roles, {
-      fields: [menuPermissions.roleId],
-      references: [roles.id],
-    }),
-  }),
-);
-
-export const approvalLevelsRelations = relations(approvalLevels, ({ one }) => ({
-  role: one(roles, { fields: [approvalLevels.roleId], references: [roles.id] }),
-}));
-
-// ==========================================
-// ENTERPRISE CONTRACT DOMAIN
-// ==========================================
-
-export const contracts = sqliteTable(
-  "contracts",
-  {
-    id: text("id").primaryKey(),
-    contractNumber: text("contract_number").notNull().unique(),
-    customerId: text("customer_id")
-      .notNull()
-      .references(() => customers.id),
-    contractType: text("contract_type"),
-    contractCategory: text("contract_category"),
-    startDate: text("start_date"),
-    endDate: text("end_date"),
-    status: text("status").default("Draft"),
-    renewalType: text("renewal_type"),
-    autoRenewal: integer("auto_renewal", { mode: "boolean" }).default(false),
-    currency: text("currency"),
-    paymentTerm: text("payment_term"),
-    salespersonId: text("salesperson_id").references(() => employees.id),
-    accountManagerId: text("account_manager_id").references(() => employees.id),
-    branchId: text("branch_id").references(() => branches.id),
-    companyId: text("company_id").references(() => companies.id),
-    description: text("description"),
-
-    isDeleted: integer("is_deleted", { mode: "boolean" }).default(false),
-    createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-    createdBy: text("created_by"),
-    updatedAt: text("updated_at"),
-    updatedBy: text("updated_by"),
-    deletedAt: text("deleted_at"),
-    deletedBy: text("deleted_by"),
-  },
-  (table) => {
-    return {
-      contractNumberIdx: index("contract_number_idx").on(table.contractNumber),
-      customerIdx: index("contract_customer_idx").on(table.customerId),
-      statusIdx: index("contract_status_idx").on(table.status),
-    };
-  },
-);
-
-export const contractServices = sqliteTable("contract_services", {
-  id: text("id").primaryKey(),
-  contractId: text("contract_id")
-    .notNull()
-    .references(() => contracts.id),
-  serviceName: text("service_name").notNull(),
-  serviceCategory: text("service_category"),
-  serviceLevel: text("service_level"),
-  included: text("included"),
-  excluded: text("excluded"),
-  unlimitedSupport: integer("unlimited_support", { mode: "boolean" }).default(
-    false,
-  ),
-  remoteSupport: integer("remote_support", { mode: "boolean" }).default(false),
-  onsiteSupport: integer("onsite_support", { mode: "boolean" }).default(false),
-  preventiveMaintenance: integer("preventive_maintenance", {
-    mode: "boolean",
-  }).default(false),
-  correctiveMaintenance: integer("corrective_maintenance", {
-    mode: "boolean",
-  }).default(false),
-  emergencySupport: integer("emergency_support", { mode: "boolean" }).default(
-    false,
-  ),
-
-  isDeleted: integer("is_deleted", { mode: "boolean" }).default(false),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  createdBy: text("created_by"),
-  updatedAt: text("updated_at"),
-  updatedBy: text("updated_by"),
-});
-
-export const contractSlas = sqliteTable("contract_slas", {
-  id: text("id").primaryKey(),
-  contractId: text("contract_id")
-    .notNull()
-    .references(() => contracts.id),
-  responseTime: text("response_time"),
-  resolutionTime: text("resolution_time"),
-  businessHours: text("business_hours"),
-  is24x7: integer("is_24x7", { mode: "boolean" }).default(false),
-  holidayCalendar: text("holiday_calendar"),
-  escalationLevel: text("escalation_level"),
-  maximumDowntime: text("maximum_downtime"),
-  penaltyRule: text("penalty_rule"),
-
-  isDeleted: integer("is_deleted", { mode: "boolean" }).default(false),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  createdBy: text("created_by"),
-  updatedAt: text("updated_at"),
-  updatedBy: text("updated_by"),
-});
-
-export const contractCoverages = sqliteTable("contract_coverages", {
-  id: text("id").primaryKey(),
-  contractId: text("contract_id")
-    .notNull()
-    .references(() => contracts.id),
-  coveredAssetId: text("covered_asset_id").references(() => assets.id),
-  coveredBranchId: text("covered_branch_id").references(() => branches.id),
-  coveredLocation: text("covered_location"),
-  coveredDeviceId: text("covered_device_id"), // Might refer to another table, string for now
-  coveredUserId: text("covered_user_id"),
-  coverageType: text("coverage_type"),
-
-  isDeleted: integer("is_deleted", { mode: "boolean" }).default(false),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  createdBy: text("created_by"),
-  updatedAt: text("updated_at"),
-  updatedBy: text("updated_by"),
-});
-
-export const contractDevices = sqliteTable("contract_devices", {
-  id: text("id").primaryKey(),
-  contractId: text("contract_id")
-    .notNull()
-    .references(() => contracts.id),
-  maximumDevice: integer("maximum_device"),
-  currentDevice: integer("current_device"),
-  maximumUser: integer("maximum_user"),
-  currentUser: integer("current_user"),
-  maximumServer: integer("maximum_server"),
-  currentServer: integer("current_server"),
-
-  isDeleted: integer("is_deleted", { mode: "boolean" }).default(false),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  createdBy: text("created_by"),
-  updatedAt: text("updated_at"),
-  updatedBy: text("updated_by"),
-});
-
-export const contractDocuments = sqliteTable("contract_documents", {
-  id: text("id").primaryKey(),
-  contractId: text("contract_id")
-    .notNull()
-    .references(() => contracts.id),
-  documentName: text("document_name").notNull(),
-  documentType: text("document_type"),
-  fileUrl: text("file_url"),
-
-  isDeleted: integer("is_deleted", { mode: "boolean" }).default(false),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  createdBy: text("created_by"),
-  updatedAt: text("updated_at"),
-  updatedBy: text("updated_by"),
-});
-
-export const contractAttachments = sqliteTable("contract_attachments", {
-  id: text("id").primaryKey(),
-  contractId: text("contract_id")
-    .notNull()
-    .references(() => contracts.id),
-  fileName: text("file_name").notNull(),
-  fileUrl: text("file_url"),
-  fileSize: integer("file_size"),
-
-  isDeleted: integer("is_deleted", { mode: "boolean" }).default(false),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  createdBy: text("created_by"),
-});
-
-export const contractBillings = sqliteTable("contract_billings", {
-  id: text("id").primaryKey(),
-  contractId: text("contract_id")
-    .notNull()
-    .references(() => contracts.id),
-  billingCycle: text("billing_cycle"), // Monthly, Quarterly, Yearly
-  nextBilling: text("next_billing"),
-  lastBilling: text("last_billing"),
-  monthlyFee: real("monthly_fee"),
-  yearlyFee: real("yearly_fee"),
-
-  isDeleted: integer("is_deleted", { mode: "boolean" }).default(false),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  createdBy: text("created_by"),
-  updatedAt: text("updated_at"),
-  updatedBy: text("updated_by"),
-});
-
-export const contractRenewals = sqliteTable("contract_renewals", {
-  id: text("id").primaryKey(),
-  contractId: text("contract_id")
-    .notNull()
-    .references(() => contracts.id),
-  renewalDate: text("renewal_date"),
-  reminderDate: text("reminder_date"),
-  autoRenewal: integer("auto_renewal", { mode: "boolean" }).default(false),
-  renewalStatus: text("renewal_status"),
-
-  isDeleted: integer("is_deleted", { mode: "boolean" }).default(false),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  createdBy: text("created_by"),
-  updatedAt: text("updated_at"),
-  updatedBy: text("updated_by"),
-});
-
-export const contractApprovals = sqliteTable("contract_approvals", {
-  id: text("id").primaryKey(),
-  contractId: text("contract_id")
-    .notNull()
-    .references(() => contracts.id),
-  approvalWorkflow: text("approval_workflow"),
-  approvalLevel: integer("approval_level"),
-  approvalDate: text("approval_date"),
-  approvedBy: text("approved_by").references(() => employees.id),
-  status: text("status"),
-  notes: text("notes"),
-
-  isDeleted: integer("is_deleted", { mode: "boolean" }).default(false),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  createdBy: text("created_by"),
-});
-
-export const contractHistories = sqliteTable("contract_histories", {
-  id: text("id").primaryKey(),
-  contractId: text("contract_id")
-    .notNull()
-    .references(() => contracts.id),
-  action: text("action"),
-  description: text("description"),
-
-  isDeleted: integer("is_deleted", { mode: "boolean" }).default(false),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  createdBy: text("created_by"),
-});
-
-// Relations
-
-export const contractsRelations = relations(contracts, ({ one, many }) => ({
-  customer: one(customers, {
-    fields: [contracts.customerId],
-    references: [customers.id],
-  }),
-  salesperson: one(employees, {
-    fields: [contracts.salespersonId],
-    references: [employees.id],
-  }),
-  accountManager: one(employees, {
-    fields: [contracts.accountManagerId],
-    references: [employees.id],
-  }),
-  branch: one(branches, {
-    fields: [contracts.branchId],
-    references: [branches.id],
-  }),
-  company: one(companies, {
-    fields: [contracts.companyId],
-    references: [companies.id],
-  }),
-
-  services: many(contractServices),
-  slas: many(contractSlas),
-  coverages: many(contractCoverages),
-  devices: many(contractDevices),
-  documents: many(contractDocuments),
-  attachments: many(contractAttachments),
-  billings: many(contractBillings),
-  renewals: many(contractRenewals),
-  approvals: many(contractApprovals),
-  histories: many(contractHistories),
-  assets: many(assets),
-  projects: many(projects),
-  tickets: many(tickets),
-}));
-
-export const contractServicesRelations = relations(
-  contractServices,
-  ({ one }) => ({
-    contract: one(contracts, {
-      fields: [contractServices.contractId],
-      references: [contracts.id],
-    }),
-  }),
-);
-
-export const contractSlasRelations = relations(contractSlas, ({ one }) => ({
-  contract: one(contracts, {
-    fields: [contractSlas.contractId],
-    references: [contracts.id],
-  }),
-}));
-
-export const contractCoveragesRelations = relations(
-  contractCoverages,
-  ({ one }) => ({
-    contract: one(contracts, {
-      fields: [contractCoverages.contractId],
-      references: [contracts.id],
-    }),
-    asset: one(assets, {
-      fields: [contractCoverages.coveredAssetId],
-      references: [assets.id],
-    }),
-    branch: one(branches, {
-      fields: [contractCoverages.coveredBranchId],
-      references: [branches.id],
-    }),
-  }),
-);
-
-export const contractDevicesRelations = relations(
-  contractDevices,
-  ({ one }) => ({
-    contract: one(contracts, {
-      fields: [contractDevices.contractId],
-      references: [contracts.id],
-    }),
-  }),
-);
-
-export const contractDocumentsRelations = relations(
-  contractDocuments,
-  ({ one }) => ({
-    contract: one(contracts, {
-      fields: [contractDocuments.contractId],
-      references: [contracts.id],
-    }),
-  }),
-);
-
-export const contractAttachmentsRelations = relations(
-  contractAttachments,
-  ({ one }) => ({
-    contract: one(contracts, {
-      fields: [contractAttachments.contractId],
-      references: [contracts.id],
-    }),
-  }),
-);
-
-export const contractBillingsRelations = relations(
-  contractBillings,
-  ({ one }) => ({
-    contract: one(contracts, {
-      fields: [contractBillings.contractId],
-      references: [contracts.id],
-    }),
-  }),
-);
-
-export const contractRenewalsRelations = relations(
-  contractRenewals,
-  ({ one }) => ({
-    contract: one(contracts, {
-      fields: [contractRenewals.contractId],
-      references: [contracts.id],
-    }),
-  }),
-);
-
-export const contractApprovalsRelations = relations(
-  contractApprovals,
-  ({ one }) => ({
-    contract: one(contracts, {
-      fields: [contractApprovals.contractId],
-      references: [contracts.id],
-    }),
-    approver: one(employees, {
-      fields: [contractApprovals.approvedBy],
-      references: [employees.id],
-    }),
-  }),
-);
-
-export const contractHistoriesRelations = relations(
-  contractHistories,
-  ({ one }) => ({
-    contract: one(contracts, {
-      fields: [contractHistories.contractId],
-      references: [contracts.id],
-    }),
-  }),
-);
 
 export const assetsRelations = relations(assets, ({ one, many }) => ({
-  contract: one(contracts, {
-    fields: [assets.contractId],
-    references: [contracts.id],
-  }),
-  customer: one(customers, {
-    fields: [assets.customerId],
-    references: [customers.id],
-  }),
-  project: one(projects, {
-    fields: [assets.projectId],
-    references: [projects.id],
-  }),
   category: one(assetCategories, {
     fields: [assets.categoryId],
     references: [assetCategories.id],
-  }),
-  model: one(assetModels, {
-    fields: [assets.modelId],
-    references: [assetModels.id],
   }),
   manufacturer: one(manufacturers, {
     fields: [assets.manufacturerId],
     references: [manufacturers.id],
   }),
+  model: one(assetModels, {
+    fields: [assets.modelId],
+    references: [assetModels.id],
+  }),
   location: one(assetLocations, {
     fields: [assets.locationId],
     references: [assetLocations.id],
   }),
-  ownerCompany: one(companies, {
-    fields: [assets.ownerCompanyId],
-    references: [companies.id],
-  }),
-  branch: one(branches, {
-    fields: [assets.branchId],
-    references: [branches.id],
+  department: one(departments, {
+    fields: [assets.departmentId],
+    references: [departments.id],
   }),
   assignedEmployee: one(employees, {
     fields: [assets.assignedToId],
@@ -2787,33 +1817,13 @@ export const ciTagsRelations = relations(ciTags, ({ one }) => ({
 
 // === MOVED RELATIONS ===
 export const employeesRelations = relations(employees, ({ one, many }) => ({
-  company: one(companies, {
-    fields: [employees.companyId],
-    references: [companies.id],
-  }),
-  branch: one(branches, {
-    fields: [employees.branchId],
-    references: [branches.id],
-  }),
-  department: one(departments, {
-    fields: [employees.departmentId],
-    references: [departments.id],
-  }),
-  section: one(sections, {
-    fields: [employees.sectionId],
-    references: [sections.id],
-  }),
-  position: one(positions, {
-    fields: [employees.positionId],
-    references: [positions.id],
-  }),
-
+  section: one(sections, { fields: [employees.sectionId], references: [sections.id] }),
+  team: one(teams, { fields: [employees.teamId], references: [teams.id] }),
+  subordinates: many(employees, { relationName: "manager" }),
   contracts: many(employeeContracts),
   leaves: many(employeeLeaves),
   attendance: many(attendance),
-  assetAssignments: many(assetAssignments, {
-    relationName: "employeeAssignments",
-  }),
+  assetAssignments: many(assetAssignments),
   certifications: many(employeeCertifications),
   trainings: many(employeeTrainings),
   performances: many(employeePerformances),
@@ -2877,3 +1887,884 @@ export const employeeDocumentsRelations = relations(
     }),
   }),
 );
+
+
+// ==========================================
+// BUSINESS PROCESS ENGINE (CORE PLATFORM)
+// ==========================================
+
+export const processDefinitions = sqliteTable("process_definitions", {
+  id: text("id").primaryKey(),
+  code: text("code").notNull().unique(), // e.g. EMPLOYEE_PROMOTION, PURCHASE_ORDER
+  name: text("name").notNull(),
+  description: text("description"),
+  version: integer("version").notNull().default(1),
+  statesConfigJson: text("states_config_json"), // JSON string defining valid states
+  transitionsConfigJson: text("transitions_config_json"), // JSON string defining valid transitions
+  isActive: integer("is_active", { mode: "boolean" }).default(true),
+  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at"),
+  createdBy: text("created_by")
+});
+
+export const processInstances = sqliteTable("process_instances", {
+  id: text("id").primaryKey(),
+  definitionId: text("definition_id").notNull().references(() => processDefinitions.id),
+  entityId: text("entity_id").notNull(), // The ID of the Business Entity (Employee, Customer, etc.)
+  entityType: text("entity_type").notNull(), // e.g., 'EMPLOYEE', 'CUSTOMER', 'ASSET'
+  currentState: text("current_state").notNull(), // e.g., 'DRAFT', 'APPROVED'
+  status: text("status").notNull(), // 'RUNNING', 'COMPLETED', 'FAILED', 'CANCELLED'
+  startedBy: text("started_by"),
+  startedAt: text("started_at").default(sql`CURRENT_TIMESTAMP`),
+  completedAt: text("completed_at"),
+  metadataJson: text("metadata_json"),
+  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at")
+}, (table) => {
+  return {
+    entityIdx: index("pi_entity_idx").on(table.entityType, table.entityId)
+  }
+});
+
+export const processEvents = sqliteTable("process_events", {
+  id: text("id").primaryKey(),
+  eventName: text("event_name").notNull(),
+  eventVersion: text("event_version").notNull().default("1.0"),
+  traceId: text("trace_id").notNull(),
+  correlationId: text("correlation_id"),
+  sourceModule: text("source_module"),
+  payloadJson: text("payload_json"),
+  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`)
+});
+
+export const processActivities = sqliteTable("process_activities", {
+  id: text("id").primaryKey(),
+  processInstanceId: text("process_instance_id").notNull().references(() => processInstances.id),
+  traceId: text("trace_id"),
+  activityType: text("activity_type").notNull(), // e.g., 'TRANSITION', 'COMMENT', 'APPROVAL'
+  who: text("who"), // User ID or System
+  what: text("what"), // Description
+  when: text("when").default(sql`CURRENT_TIMESTAMP`),
+  where: text("where"), // Module or IP
+  result: text("result"), // 'SUCCESS', 'FAILED'
+  referenceId: text("reference_id"), // Optional reference to another record
+  metadataJson: text("metadata_json")
+});
+
+export const processTasks = sqliteTable("process_tasks", {
+  id: text("id").primaryKey(),
+  processInstanceId: text("process_instance_id").notNull().references(() => processInstances.id),
+  assigneeId: text("assignee_id"), // Employee ID
+  roleId: text("role_id"), // Or Role ID
+  title: text("title").notNull(),
+  description: text("description"),
+  status: text("status").notNull().default("PENDING"), // PENDING, IN_PROGRESS, COMPLETED, CANCELLED
+  dueDate: text("due_date"),
+  completedAt: text("completed_at"),
+  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at")
+});
+
+export const processApprovals = sqliteTable("process_approvals", {
+  id: text("id").primaryKey(),
+  processInstanceId: text("process_instance_id").notNull().references(() => processInstances.id),
+  approverId: text("approver_id"), // Employee ID
+  roleId: text("role_id"), // Role ID
+  level: integer("level").notNull().default(1),
+  status: text("status").notNull().default("PENDING"), // PENDING, APPROVED, REJECTED, DELEGATED
+  notes: text("notes"),
+  decidedAt: text("decided_at"),
+  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at")
+});
+
+export const processComments = sqliteTable("process_comments", {
+  id: text("id").primaryKey(),
+  processInstanceId: text("process_instance_id").notNull().references(() => processInstances.id),
+  authorId: text("author_id"),
+  content: text("content").notNull(),
+  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at")
+});
+
+export const processAttachments = sqliteTable("process_attachments", {
+  id: text("id").primaryKey(),
+  processInstanceId: text("process_instance_id").notNull().references(() => processInstances.id),
+  fileName: text("file_name").notNull(),
+  fileUrl: text("file_url").notNull(),
+  uploadedBy: text("uploaded_by"),
+  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`)
+});
+
+export const processDefinitionsRelations = relations(processDefinitions, ({ many }) => ({
+  instances: many(processInstances)
+}));
+
+export const processInstancesRelations = relations(processInstances, ({ one, many }) => ({
+  definition: one(processDefinitions, { fields: [processInstances.definitionId], references: [processDefinitions.id] }),
+  activities: many(processActivities),
+  tasks: many(processTasks),
+  approvals: many(processApprovals),
+  comments: many(processComments),
+  attachments: many(processAttachments)
+}));
+
+export const processActivitiesRelations = relations(processActivities, ({ one }) => ({
+  instance: one(processInstances, { fields: [processActivities.processInstanceId], references: [processInstances.id] })
+}));
+export const processTasksRelations = relations(processTasks, ({ one }) => ({
+  instance: one(processInstances, { fields: [processTasks.processInstanceId], references: [processInstances.id] })
+}));
+export const processApprovalsRelations = relations(processApprovals, ({ one }) => ({
+  instance: one(processInstances, { fields: [processApprovals.processInstanceId], references: [processInstances.id] })
+}));
+export const processCommentsRelations = relations(processComments, ({ one }) => ({
+  instance: one(processInstances, { fields: [processComments.processInstanceId], references: [processInstances.id] })
+}));
+export const processAttachmentsRelations = relations(processAttachments, ({ one }) => ({
+  instance: one(processInstances, { fields: [processAttachments.processInstanceId], references: [processInstances.id] })
+}));
+
+
+// ==========================================
+// ENTERPRISE ORGANIZATION PLATFORM (CORE)
+// ==========================================
+
+export const orgPlatform = sqliteTable("org_platform", {
+  id: text("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  name: text("name").notNull(),
+  type: text("type").notNull(), // COMPANY, BRANCH, DIVISION, DEPARTMENT, SECTION, TEAM, POSITION
+  level: integer("level").notNull().default(0), // Calculated Depth
+  parentId: text("parent_id").references(() => orgPlatform.id), // References orgPlatform.id
+  path: text("path"), // Materialized Path
+  isActive: integer("is_active", { mode: "boolean" }).default(true),
+  isDeleted: integer("is_deleted", { mode: "boolean" }).default(false),
+  effectiveDate: text("effective_date").default(sql`CURRENT_TIMESTAMP`),
+  version: integer("version").notNull().default(1),
+  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at"),
+  createdBy: text("created_by"),
+  updatedBy: text("updated_by"),
+  deletedAt: text("deleted_at"),
+  deletedBy: text("deleted_by")
+});
+
+export const orgRelationships = sqliteTable("org_relationships", {
+  id: text("id").primaryKey(),
+  ancestorId: text("ancestor_id").notNull(),
+  descendantId: text("descendant_id").notNull(),
+  depth: integer("depth").notNull(),
+  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`)
+});
+
+export const orgTimeline = sqliteTable("org_timeline", {
+  id: text("id").primaryKey(),
+  orgId: text("org_id").notNull(),
+  action: text("action").notNull(), // CREATED, UPDATED, MOVED, ACTIVATED, DEACTIVATED, RESTORED, DELETED
+  oldValueJson: text("old_value_json"),
+  newValueJson: text("new_value_json"),
+  actor: text("actor").notNull(),
+  traceId: text("trace_id"),
+  correlationId: text("correlation_id"),
+  timestamp: text("timestamp").default(sql`CURRENT_TIMESTAMP`)
+});
+
+export const orgAudit = sqliteTable("org_audit", {
+  id: text("id").primaryKey(),
+  orgId: text("org_id").notNull(),
+  action: text("action").notNull(),
+  changesJson: text("changes_json"),
+  actor: text("actor").notNull(),
+  timestamp: text("timestamp").default(sql`CURRENT_TIMESTAMP`)
+});
+
+export const orgPlatformRelations = relations(orgPlatform, ({ one, many }) => ({
+  parent: one(orgPlatform, { fields: [orgPlatform.parentId], references: [orgPlatform.id], relationName: "parent_child" }),
+  children: many(orgPlatform, { relationName: "parent_child" })
+}));
+
+
+export const roles = sqliteTable("roles", {
+  id: text("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  name: text("name").notNull(),
+  description: text("description"),
+  groupId: text("group_id").references(() => roleGroups.id),
+  isSystem: integer("is_system", { mode: "boolean" }).default(false),
+  isActive: integer("is_active", { mode: "boolean" }).default(true),
+  isDeleted: integer("is_deleted", { mode: "boolean" }).default(false),
+  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
+  createdBy: text("created_by"),
+  updatedAt: text("updated_at"),
+  updatedBy: text("updated_by"),
+});
+
+export const roleGroups = sqliteTable("role_groups", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  description: text("description"),
+  isActive: integer("is_active", { mode: "boolean" }).default(true),
+});
+
+export const permissions = sqliteTable("permissions", {
+  id: text("id").primaryKey(),
+  module: text("module").notNull(), // e.g., Dashboard, Ticket, Invoice
+  action: text("action").notNull(), // e.g., View, Create, Update, Delete, Approve
+  name: text("name").notNull(),
+  description: text("description"),
+  isSystem: integer("is_system", { mode: 'boolean' }).default(false),
+});
+
+export const rolePermissions = sqliteTable("role_permissions", {
+  id: text("id").primaryKey(),
+  roleId: text("role_id").notNull().references(() => roles.id),
+  permissionId: text("permission_id").notNull().references(() => permissions.id),
+});
+
+export const userRoles = sqliteTable("user_roles", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id),
+  roleId: text("role_id").notNull().references(() => roles.id),
+});
+
+export const dataScopes = sqliteTable("data_scopes", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull().unique(), // e.g., Self, Department, Division, Branch, Company, Global
+  description: text("description"),
+  level: integer("level").notNull(), // lower means more restricted
+});
+
+export const roleDataScopes = sqliteTable("role_data_scopes", {
+  id: text("id").primaryKey(),
+  roleId: text("role_id").notNull().references(() => roles.id),
+  module: text("module").notNull(),
+  scopeId: text("scope_id").notNull().references(() => dataScopes.id),
+});
+
+export const menuPermissions = sqliteTable("menu_permissions", {
+  id: text("id").primaryKey(),
+  roleId: text("role_id").notNull().references(() => roles.id),
+  menu: text("menu").notNull(), // e.g., Dashboard, CRM, Sales, etc.
+});
+
+export const approvalLevels = sqliteTable("approval_levels", {
+  id: text("id").primaryKey(),
+  roleId: text("role_id").notNull().references(() => roles.id),
+  module: text("module").notNull(), // e.g., Purchase, Invoice
+  minAmount: integer("min_amount").notNull(),
+  maxAmount: integer("max_amount"), // null means unlimited
+  levelOrder: integer("level_order").notNull(),
+});
+
+export const auditPermissions = sqliteTable("audit_permissions", {
+  id: text("id").primaryKey(),
+  actorId: text("actor_id").notNull(), // User who made the change
+  action: text("action").notNull(), // e.g., GRANT_PERMISSION, REVOKE_PERMISSION, CHANGE_APPROVAL
+  entityType: text("entity_type").notNull(), // e.g., Role, ApprovalLevel
+  entityId: text("entity_id").notNull(),
+  details: text("details"),
+  oldValue: text("old_value"),
+  newValue: text("new_value"),
+  timestamp: text("timestamp").notNull().default(sql`CURRENT_TIMESTAMP`),
+  ipAddress: text("ip_address"),
+});
+
+
+export const slas = sqliteTable("slas", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  priorityId: text("priority_id").references(() => ticketPriorities.id),
+  responseTimeMinutes: integer("response_time_minutes").notNull(),
+  resolutionTimeMinutes: integer("resolution_time_minutes").notNull(),
+});
+
+
+export const ticketComments = sqliteTable("ticket_comments", {
+  id: text("id").primaryKey(),
+  ticketId: text("ticket_id").notNull().references(() => tickets.id),
+  createdBy: text("created_by").notNull().references(() => employees.id),
+  comment: text("comment").notNull(),
+  isInternal: integer("is_internal", { mode: "boolean" }).default(false),
+  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const ticketWorklogs = sqliteTable("ticket_worklogs", {
+  id: text("id").primaryKey(),
+  ticketId: text("ticket_id").notNull().references(() => tickets.id),
+  employeeId: text("employee_id").notNull().references(() => employees.id),
+  timeSpentMinutes: integer("time_spent_minutes").notNull(),
+  workDate: text("work_date").notNull(),
+  description: text("description").notNull(),
+  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const ticketAttachments = sqliteTable("ticket_attachments", {
+  id: text("id").primaryKey(),
+  ticketId: text("ticket_id").notNull().references(() => tickets.id),
+  createdBy: text("created_by").notNull().references(() => employees.id),
+  fileName: text("file_name").notNull(),
+  fileUrl: text("file_url").notNull(),
+  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const ticketTimelines = sqliteTable("ticket_timelines", {
+  id: text("id").primaryKey(),
+  ticketId: text("ticket_id").notNull().references(() => tickets.id),
+  createdBy: text("created_by").notNull().references(() => employees.id),
+  action: text("action").notNull(),
+  oldValue: text("old_value"),
+  newValue: text("new_value"),
+  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const ticketWatchers = sqliteTable("ticket_watchers", {
+  id: text("id").primaryKey(),
+  ticketId: text("ticket_id").notNull().references(() => tickets.id),
+  employeeId: text("employee_id").notNull().references(() => employees.id),
+});
+
+export const tags = sqliteTable("tags", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull().unique(),
+});
+
+export const ticketTags = sqliteTable("ticket_tags", {
+  id: text("id").primaryKey(),
+  ticketId: text("ticket_id").notNull().references(() => tickets.id),
+  tagId: text("tag_id").notNull().references(() => tags.id),
+});
+
+
+
+export const ticketCategories = sqliteTable("ticket_categories", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  code: text("code"),
+  isDeleted: integer("is_deleted", { mode: 'boolean' }).default(false),
+  createdAt: text("created_at"),
+  updatedAt: text("updated_at"),
+});
+
+export const ticketSubCategories = sqliteTable("ticket_sub_categories", {
+  id: text("id").primaryKey(),
+  categoryId: text("category_id").references(() => ticketCategories.id),
+  name: text("name").notNull(),
+  description: text("description"),
+  isDeleted: integer("is_deleted", { mode: 'boolean' }).default(false),
+  createdAt: text("created_at"),
+});
+
+export const ticketPriorities = sqliteTable("ticket_priorities", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  level: integer("level"),
+  isDeleted: integer("is_deleted", { mode: 'boolean' }).default(false),
+});
+
+export const ticketImpacts = sqliteTable("ticket_impacts", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  level: integer("level"),
+  isDeleted: integer("is_deleted", { mode: 'boolean' }).default(false),
+});
+
+export const ticketUrgencies = sqliteTable("ticket_urgencies", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  level: integer("level"),
+  isDeleted: integer("is_deleted", { mode: 'boolean' }).default(false),
+});
+
+export const ticketStatuses = sqliteTable("ticket_statuses", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  isClosed: integer("is_closed", { mode: 'boolean' }).default(false),
+  isDeleted: integer("is_deleted", { mode: 'boolean' }).default(false),
+});
+
+export const tickets = sqliteTable("tickets", {
+  id: text("id").primaryKey(),
+  ticketNumber: text("ticket_number").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  statusId: text("status_id").references(() => ticketStatuses.id),
+  priorityId: text("priority_id").references(() => ticketPriorities.id),
+  impactId: text("impact_id").references(() => ticketImpacts.id),
+  urgencyId: text("urgency_id").references(() => ticketUrgencies.id),
+  categoryId: text("category_id").references(() => ticketCategories.id),
+  subCategoryId: text("sub_category_id").references(() => ticketSubCategories.id),
+  customerId: text("customer_id").references(() => customers.id),
+  assignedTo: text("assigned_to").references(() => employees.id),
+  reportedBy: text("reported_by"),
+  assetId: text("asset_id").references(() => assets.id),
+  contractId: text("contract_id").references(() => contracts.id),
+  slaId: text("sla_id").references(() => slas.id),
+  ciId: text("ci_id").references(() => cis.id),
+  expectedResolutionDate: text("expected_resolution_date"),
+  actualResolutionDate: text("actual_resolution_date"),
+  createdAt: text("created_at"),
+  updatedAt: text("updated_at"),
+  deletedAt: text("deleted_at"),
+  deletedBy: text("deleted_by"),
+});
+export const ticketsRelations = relations(tickets, ({ one, many }) => ({
+  priority: one(ticketPriorities, {
+    fields: [tickets.priorityId],
+    references: [ticketPriorities.id],
+  }),
+  status: one(ticketStatuses, {
+    fields: [tickets.statusId],
+    references: [ticketStatuses.id],
+  }),
+  impact: one(ticketImpacts, {
+    fields: [tickets.impactId],
+    references: [ticketImpacts.id],
+  }),
+  urgency: one(ticketUrgencies, {
+    fields: [tickets.urgencyId],
+    references: [ticketUrgencies.id],
+  }),
+  category: one(ticketCategories, {
+    fields: [tickets.categoryId],
+    references: [ticketCategories.id],
+  }),
+  subCategory: one(ticketSubCategories, {
+    fields: [tickets.subCategoryId],
+    references: [ticketSubCategories.id],
+  }),
+  asset: one(assets, {
+    fields: [tickets.assetId],
+    references: [assets.id],
+  }),
+  contract: one(contracts, {
+    fields: [tickets.contractId],
+    references: [contracts.id],
+  }),
+  customer: one(customers, {
+    fields: [tickets.customerId],
+    references: [customers.id],
+  }),
+  sla: one(slas, {
+    fields: [tickets.slaId],
+    references: [slas.id],
+  }),
+  assignedEmployee: one(employees, {
+    fields: [tickets.assignedTo],
+    references: [employees.id],
+  }),
+  reportedEmployee: one(employees, {
+    fields: [tickets.reportedBy],
+    references: [employees.id],
+  }),
+  comments: many(ticketComments),
+  worklogs: many(ticketWorklogs),
+  attachments: many(ticketAttachments),
+  timelines: many(ticketTimelines),
+  watchers: many(ticketWatchers),
+  tags: many(ticketTags),
+}));
+
+export const ticketCategoriesRelations = relations(
+  ticketCategories,
+  ({ many }) => ({
+    subCategories: many(ticketSubCategories),
+    tickets: many(tickets),
+  }),
+);
+
+export const ticketSubCategoriesRelations = relations(
+  ticketSubCategories,
+  ({ one, many }) => ({
+    category: one(ticketCategories, {
+      fields: [ticketSubCategories.categoryId],
+      references: [ticketCategories.id],
+    }),
+    tickets: many(tickets),
+  }),
+);
+
+export const ticketCommentsRelations = relations(
+  ticketComments,
+  ({ one }) => ({
+    ticket: one(tickets, {
+      fields: [ticketComments.ticketId],
+      references: [tickets.id],
+    }),
+    createdByEmployee: one(employees, {
+      fields: [ticketComments.createdBy],
+      references: [employees.id],
+    }),
+  }),
+);
+
+export const ticketWorklogsRelations = relations(
+  ticketWorklogs,
+  ({ one }) => ({
+    ticket: one(tickets, {
+      fields: [ticketWorklogs.ticketId],
+      references: [tickets.id],
+    }),
+    employee: one(employees, {
+      fields: [ticketWorklogs.employeeId],
+      references: [employees.id],
+    }),
+  }),
+);
+
+export const ticketAttachmentsRelations = relations(
+  ticketAttachments,
+  ({ one }) => ({
+    ticket: one(tickets, {
+      fields: [ticketAttachments.ticketId],
+      references: [tickets.id],
+    }),
+    createdByEmployee: one(employees, {
+      fields: [ticketAttachments.createdBy],
+      references: [employees.id],
+    }),
+  }),
+);
+
+export const ticketTimelinesRelations = relations(
+  ticketTimelines,
+  ({ one }) => ({
+    ticket: one(tickets, {
+      fields: [ticketTimelines.ticketId],
+      references: [tickets.id],
+    }),
+    createdByEmployee: one(employees, {
+      fields: [ticketTimelines.createdBy],
+      references: [employees.id],
+    }),
+  }),
+);
+
+export const ticketWatchersRelations = relations(
+  ticketWatchers,
+  ({ one }) => ({
+    ticket: one(tickets, {
+      fields: [ticketWatchers.ticketId],
+      references: [tickets.id],
+    }),
+    employee: one(employees, {
+      fields: [ticketWatchers.employeeId],
+      references: [employees.id],
+    }),
+  }),
+);
+
+export const tagsRelations = relations(tags, ({ many }) => ({
+  tickets: many(ticketTags),
+}));
+
+export const ticketTagsRelations = relations(ticketTags, ({ one }) => ({
+  ticket: one(tickets, {
+    fields: [ticketTags.ticketId],
+    references: [tickets.id],
+  }),
+  tag: one(tags, {
+    fields: [ticketTags.tagId],
+    references: [tags.id],
+  }),
+}));
+
+export const slasRelations = relations(slas, ({ one, many }) => ({
+  priority: one(ticketPriorities, {
+    fields: [slas.priorityId],
+    references: [ticketPriorities.id],
+  }),
+  tickets: many(tickets),
+}));
+
+
+
+export const dataScopesRelations = relations(dataScopes, ({ many }) => ({
+  roleDataScopes: many(roleDataScopes),
+}));
+
+export const roleDataScopesRelations = relations(roleDataScopes, ({ one }) => ({
+  role: one(roles, {
+    fields: [roleDataScopes.roleId],
+    references: [roles.id],
+  }),
+  scope: one(dataScopes, {
+    fields: [roleDataScopes.scopeId],
+    references: [dataScopes.id],
+  }),
+}));
+
+export const approvalLevelsRelations = relations(approvalLevels, ({ one }) => ({
+  role: one(roles, {
+    fields: [approvalLevels.roleId],
+    references: [roles.id],
+  }),
+}));
+
+export const auditPermissionsRelations = relations(auditPermissions, ({ one }) => ({
+  actor: one(users, {
+    fields: [auditPermissions.actorId],
+    references: [users.id],
+  }),
+}));
+
+
+export const rolesRelations = relations(roles, ({ one, many }) => ({
+  group: one(roleGroups, {
+    fields: [roles.groupId],
+    references: [roleGroups.id],
+  }),
+  rolePermissions: many(rolePermissions),
+  userRoles: many(userRoles),
+  roleDataScopes: many(roleDataScopes),
+  menuPermissions: many(menuPermissions),
+  approvalLevels: many(approvalLevels),
+}));
+
+export const rolePermissionsRelations = relations(
+  rolePermissions,
+  ({ one }) => ({
+    role: one(roles, {
+      fields: [rolePermissions.roleId],
+      references: [roles.id],
+    }),
+    permission: one(permissions, {
+      fields: [rolePermissions.permissionId],
+      references: [permissions.id],
+    }),
+  }),
+);
+
+export const userRolesRelations = relations(userRoles, ({ one }) => ({
+  user: one(users, {
+    fields: [userRoles.userId],
+    references: [users.id],
+  }),
+  role: one(roles, {
+    fields: [userRoles.roleId],
+    references: [roles.id],
+  }),
+}));
+
+export const menuPermissionsRelations = relations(
+  menuPermissions,
+  ({ one }) => ({
+    role: one(roles, {
+      fields: [menuPermissions.roleId],
+      references: [roles.id],
+    }),
+  }),
+);
+
+
+
+
+export const activities = sqliteTable("activities", {
+  id: text("id").primaryKey(),
+  performedById: text("performed_by_id").references(() => employees.id),
+  date: text("date").notNull(),
+  action: text("action").notNull(),
+  description: text("description"),
+  type: text("type"),
+  referenceId: text("reference_id"),
+  referenceType: text("reference_type"),
+  notes: text("notes"),
+  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
+});
+
+
+export const contracts = sqliteTable("contracts", {
+  id: text("id").primaryKey(),
+  contractNumber: text("contract_number"),
+  customerId: text("customer_id").references(() => customers.id),
+  contractType: text("contract_type"),
+  startDate: text("start_date"),
+  endDate: text("end_date"),
+  status: text("status"),
+  description: text("description"),
+  isDeleted: integer("is_deleted", { mode: 'boolean' }).default(false),
+  createdAt: text("created_at"),
+  updatedAt: text("updated_at"),
+});
+
+export const contractServices = sqliteTable("contract_services", {
+  id: text("id").primaryKey(),
+  contractId: text("contract_id").references(() => contracts.id),
+  name: text("name"),
+  isDeleted: integer("is_deleted", { mode: 'boolean' }).default(false),
+});
+
+export const contractSlas = sqliteTable("contract_slas", {
+  id: text("id").primaryKey(),
+  contractId: text("contract_id").references(() => contracts.id),
+  name: text("name"),
+  isDeleted: integer("is_deleted", { mode: 'boolean' }).default(false),
+});
+
+export const contractCoverages = sqliteTable("contract_coverages", {
+  id: text("id").primaryKey(),
+  contractId: text("contract_id").references(() => contracts.id),
+  name: text("name"),
+  isDeleted: integer("is_deleted", { mode: 'boolean' }).default(false),
+});
+
+export const contractDevices = sqliteTable("contract_devices", {
+  id: text("id").primaryKey(),
+  contractId: text("contract_id").references(() => contracts.id),
+  name: text("name"),
+  isDeleted: integer("is_deleted", { mode: 'boolean' }).default(false),
+});
+
+export const contractBillings = sqliteTable("contract_billings", {
+  id: text("id").primaryKey(),
+  contractId: text("contract_id").references(() => contracts.id),
+  name: text("name"),
+  isDeleted: integer("is_deleted", { mode: 'boolean' }).default(false),
+});
+
+export const contractRenewals = sqliteTable("contract_renewals", {
+  id: text("id").primaryKey(),
+  contractId: text("contract_id").references(() => contracts.id),
+  name: text("name"),
+  isDeleted: integer("is_deleted", { mode: 'boolean' }).default(false),
+});
+
+export const contractApprovals = sqliteTable("contract_approvals", {
+  id: text("id").primaryKey(),
+  contractId: text("contract_id").references(() => contracts.id),
+  name: text("name"),
+  isDeleted: integer("is_deleted", { mode: 'boolean' }).default(false),
+});
+
+export const jobs = sqliteTable("jobs", { id: text("id").primaryKey(), name: text("name").notNull() });
+
+export const leads = sqliteTable("leads", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  companyName: text("company_name"),
+  pic: text("pic"),
+  email: text("email"),
+  phone: text("phone"),
+  productInterest: text("product_interest"),
+  source: text("source"),
+  status: text("status"),
+  score: integer("score"),
+  ownerId: text("owner_id").references(() => employees.id),
+  estimatedValue: real("estimated_value"),
+  isDeleted: integer("is_deleted", { mode: 'boolean' }).default(false),
+  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`)
+});
+
+export const referenceGroups = sqliteTable("reference_groups", {
+  id: text("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  name: text("name").notNull(),
+  description: text("description"),
+  isSystem: integer("is_system", { mode: 'boolean' }).default(false),
+  sortOrder: integer("sort_order").default(0),
+});
+
+export const referenceValues = sqliteTable("reference_values", {
+  id: text("id").primaryKey(),
+  groupId: text("group_id").notNull().references(() => referenceGroups.id),
+  code: text("code").notNull(),
+  value: text("value").notNull(),
+  description: text("description"),
+  isActive: integer("is_active", { mode: 'boolean' }).default(true),
+  sortOrder: integer("sort_order").default(0),
+});
+
+
+export const journalEntries = sqliteTable("journal_entries", {
+  id: text("id").primaryKey(),
+  journalId: text("journal_id").notNull(),
+  entryNumber: text("entry_number").notNull(),
+  entryDate: text("entry_date").notNull(),
+  description: text("description").notNull(),
+  status: text("status").notNull(),
+  version: integer("version").notNull().default(1)
+});
+
+export const journalLines = sqliteTable("journal_lines", {
+  id: text("id").primaryKey(),
+  journalEntryId: text("journal_entry_id").notNull().references(() => journalEntries.id),
+  accountId: text("account_id").notNull(),
+  entryType: text("entry_type").notNull(),
+  amount: real("amount").notNull(),
+  currencyId: text("currency_id").notNull(),
+  description: text("description")
+});
+
+export const ledgerAccounts = sqliteTable("ledger_accounts", {
+  id: text("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  name: text("name").notNull(),
+  accountType: text("account_type").notNull(),
+  isActive: integer("is_active", { mode: 'boolean' }).notNull().default(true),
+  version: integer("version").notNull().default(1)
+});
+
+export const ledgerPostings = sqliteTable("ledger_postings", {
+  id: text("id").primaryKey(),
+  ledgerId: text("ledger_id").notNull(),
+  accountId: text("account_id").notNull().references(() => ledgerAccounts.id),
+  journalEntryId: text("journal_entry_id").notNull(),
+  journalLineId: text("journal_line_id").notNull(),
+  entryType: text("entry_type").notNull(),
+  amount: real("amount").notNull(),
+  currencyId: text("currency_id").notNull(),
+  postingDate: text("posting_date").notNull(),
+  fiscalPeriodId: text("fiscal_period_id").notNull()
+});
+
+export const apCreditNotes = sqliteTable("ap_credit_notes", {
+  id: text("id").primaryKey(),
+  vendorId: text("vendor_id").notNull().references(() => vendors.id),
+  invoiceId: text("invoice_id").notNull().references(() => invoices.id),
+  amount: real("amount").notNull(),
+  creditDate: text("credit_date").notNull(),
+  currencyId: text("currency_id").notNull(),
+  referenceNumber: text("reference_number"),
+  status: text("status").notNull(),
+  creditAccountId: text("credit_account_id").notNull(),
+  version: integer("version").notNull().default(1)
+});
+
+export const arCreditNotes = sqliteTable("ar_credit_notes", {
+  id: text("id").primaryKey(),
+  customerId: text("customer_id").notNull().references(() => customers.id),
+  invoiceId: text("invoice_id").notNull().references(() => invoices.id),
+  amount: real("amount").notNull(),
+  creditDate: text("credit_date").notNull(),
+  currencyId: text("currency_id").notNull(),
+  referenceNumber: text("reference_number"),
+  status: text("status").notNull(),
+  creditAccountId: text("credit_account_id").notNull(),
+  version: integer("version").notNull().default(1)
+});
+
+export const apPayments = sqliteTable("ap_payments", {
+  id: text("id").primaryKey(),
+  vendorId: text("vendor_id").notNull().references(() => vendors.id),
+  invoiceId: text("invoice_id").notNull().references(() => invoices.id),
+  amount: real("amount").notNull(),
+  paymentDate: text("payment_date").notNull(),
+  currencyId: text("currency_id").notNull(),
+  referenceNumber: text("reference_number"),
+  status: text("status").notNull(),
+  version: integer("version").notNull().default(1)
+});
+
+export const arReceipts = sqliteTable("ar_receipts", {
+  id: text("id").primaryKey(),
+  customerId: text("customer_id").notNull().references(() => customers.id),
+  invoiceId: text("invoice_id").notNull().references(() => invoices.id),
+  amount: real("amount").notNull(),
+  receiptDate: text("receipt_date").notNull(),
+  currencyId: text("currency_id").notNull(),
+  referenceNumber: text("reference_number"),
+  status: text("status").notNull(),
+  version: integer("version").notNull().default(1)
+});

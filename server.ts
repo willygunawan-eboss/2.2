@@ -20,8 +20,13 @@ import contractRoutes from "./src/routes/contractRoutes";
 import assetRoutes from "./src/routes/assetRoutes";
 import cmdbRoutes from "./src/routes/cmdbRoutes";
 import employeeRoutes from "./src/routes/employeeRoutes";
+import { financialRoutes } from "./src/routes/financialRoutes";
+import workforceRoutes from "./src/services/workforce/presentation/WorkforceRouter";
 import { initRBAC, rbacCache } from "./src/middleware/rbac-engine.js";
 import orgRoutes from "./src/routes/orgRoutes.js";
+import organizationPlatformRoutes from "./src/routes/organizationPlatformRoutes.js";
+import employmentPlatformRoutes from "./src/routes/employmentPlatformRoutes.js";
+import positionPlatformRoutes from "./src/routes/positionPlatformRoutes.js";
 import orgWorkspaceRoutes from "./src/routes/orgWorkspaceRoutes.js";
 import orgPlatformRoutes from "./src/routes/orgPlatformRoutes.js";
 import { loginSchema, employeeSchema, salesOrderSchema, projectSchema } from "./src/validations";
@@ -1053,7 +1058,10 @@ app.get('/api/auth/me', async (req, res) => {
 
 
   app.use("/api/tickets", ticketRoutes);
+  app.use("/api/financials", financialRoutes);
   app.use("/api/org", orgRoutes);
+app.use("/api/v2/org", organizationPlatformRoutes);
+  app.use("/api/v2/emp", employmentPlatformRoutes);
   app.use("/api/organization/workspace", orgWorkspaceRoutes);
   app.use("/api/organization/platform", orgPlatformRoutes);
   app.use("/api/rbac", rbacRoutes);
@@ -1062,6 +1070,9 @@ app.get('/api/auth/me', async (req, res) => {
   app.use("/api/assets", assetRoutes);
   app.use("/api/cmdb", cmdbRoutes);
   app.use("/api/employees", employeeRoutes);
+  app.use("/api/workforce", workforceRoutes);
+  app.use("/api/workflow", (await import("./src/services/workflow/presentation/WorkflowRouter.js")).default);
+  app.use("/api/policy", (await import("./src/services/policy/presentation/PolicyRouter.js")).default);
   createPostRoute("/api/activities", schema.activities, "crm");
   
   app.post("/api/tasks/:id/approve", async (req, res) => {

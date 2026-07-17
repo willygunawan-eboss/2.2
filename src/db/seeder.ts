@@ -68,7 +68,8 @@ export async function runSeeder() {
         groupId: defaultGroupId,
         name: roleName,
         description: `${roleName} Role`,
-        isSystem: true
+        isSystem: true,
+        code: "SYSTEM_" + roleId
       });
     }
 

@@ -74,9 +74,9 @@ router.get('/:id', async (req, res) => {
         model: true,
         manufacturer: true,
         location: true,
-        customer: true,
-        contract: true,
-        project: true,
+        
+        
+        
         assignments: { where: eq(schema.assetAssignments.isDeleted, false) },
         warranties: { where: eq(schema.assetWarranties.isDeleted, false) },
         maintenances: { where: eq(schema.assetMaintenances.isDeleted, false) },

@@ -1,4 +1,4 @@
-export type ModuleId = 'dashboard' | 'crm' | 'sales' | 'purchase' | 'inventory' | 'asset' | 'project' | 'field_service' | 'helpdesk' | 'finance' | 'invoicing' | 'hr' | 'bi' | 'dms' | 'kb' | 'settings' | 'org_workspace';
+export type ModuleId = 'dashboard' | 'crm' | 'sales' | 'purchase' | 'inventory' | 'asset' | 'project' | 'field_service' | 'helpdesk' | 'finance' | 'invoicing' | 'hr' | 'bi' | 'dms' | 'kb' | 'settings' | 'org_workspace' | 'emp_workspace';
 
 export type HRTab = 'overview' | 'directory' | 'attendance' | 'payroll' | 'leave';
 

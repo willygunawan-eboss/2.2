@@ -1,4 +1,4 @@
-CREATE TABLE `activities` (
+CREATE TABLE IF NOT EXISTS `activities` (
 	`id` text PRIMARY KEY NOT NULL,
 	`type` text NOT NULL,
 	`reference_id` text NOT NULL,
@@ -10,7 +10,7 @@ CREATE TABLE `activities` (
 	FOREIGN KEY (`performed_by_id`) REFERENCES `employees`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `announcements` (
+CREATE TABLE IF NOT EXISTS `announcements` (
 	`id` text PRIMARY KEY NOT NULL,
 	`title` text NOT NULL,
 	`content` text NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE `announcements` (
 	`date` text NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `approval_levels` (
+CREATE TABLE IF NOT EXISTS `approval_levels` (
 	`id` text PRIMARY KEY NOT NULL,
 	`module` text NOT NULL,
 	`min_amount` integer NOT NULL,
@@ -29,7 +29,7 @@ CREATE TABLE `approval_levels` (
 	FOREIGN KEY (`role_id`) REFERENCES `roles`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `asset_assignments` (
+CREATE TABLE IF NOT EXISTS `asset_assignments` (
 	`id` text PRIMARY KEY NOT NULL,
 	`asset_id` text NOT NULL,
 	`assigned_to_id` text NOT NULL,
@@ -43,7 +43,7 @@ CREATE TABLE `asset_assignments` (
 	FOREIGN KEY (`assigned_to_id`) REFERENCES `employees`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `asset_attachments` (
+CREATE TABLE IF NOT EXISTS `asset_attachments` (
 	`id` text PRIMARY KEY NOT NULL,
 	`asset_id` text NOT NULL,
 	`file_name` text,
@@ -54,7 +54,7 @@ CREATE TABLE `asset_attachments` (
 	FOREIGN KEY (`asset_id`) REFERENCES `assets`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `asset_categories` (
+CREATE TABLE IF NOT EXISTS `asset_categories` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`description` text,
@@ -64,7 +64,7 @@ CREATE TABLE `asset_categories` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `asset_categories_name_unique` ON `asset_categories` (`name`);--> statement-breakpoint
-CREATE TABLE `asset_configurations` (
+CREATE TABLE IF NOT EXISTS `asset_configurations` (
 	`id` text PRIMARY KEY NOT NULL,
 	`asset_id` text NOT NULL,
 	`cpu` text,
@@ -85,7 +85,7 @@ CREATE TABLE `asset_configurations` (
 	FOREIGN KEY (`asset_id`) REFERENCES `assets`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `asset_disposals` (
+CREATE TABLE IF NOT EXISTS `asset_disposals` (
 	`id` text PRIMARY KEY NOT NULL,
 	`asset_id` text NOT NULL,
 	`disposal_date` text,
@@ -99,7 +99,7 @@ CREATE TABLE `asset_disposals` (
 	FOREIGN KEY (`approved_by`) REFERENCES `employees`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `asset_documents` (
+CREATE TABLE IF NOT EXISTS `asset_documents` (
 	`id` text PRIMARY KEY NOT NULL,
 	`asset_id` text NOT NULL,
 	`document_type` text,
@@ -111,7 +111,7 @@ CREATE TABLE `asset_documents` (
 	FOREIGN KEY (`asset_id`) REFERENCES `assets`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `asset_histories` (
+CREATE TABLE IF NOT EXISTS `asset_histories` (
 	`id` text PRIMARY KEY NOT NULL,
 	`asset_id` text NOT NULL,
 	`action` text,
@@ -122,7 +122,7 @@ CREATE TABLE `asset_histories` (
 	FOREIGN KEY (`asset_id`) REFERENCES `assets`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `asset_licenses` (
+CREATE TABLE IF NOT EXISTS `asset_licenses` (
 	`id` text PRIMARY KEY NOT NULL,
 	`asset_id` text NOT NULL,
 	`license_type` text,
@@ -136,7 +136,7 @@ CREATE TABLE `asset_licenses` (
 	FOREIGN KEY (`asset_id`) REFERENCES `assets`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `asset_locations` (
+CREATE TABLE IF NOT EXISTS `asset_locations` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`branch_id` text,
@@ -147,7 +147,7 @@ CREATE TABLE `asset_locations` (
 	FOREIGN KEY (`branch_id`) REFERENCES `branches`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `asset_maintenance_schedules` (
+CREATE TABLE IF NOT EXISTS `asset_maintenance_schedules` (
 	`id` text PRIMARY KEY NOT NULL,
 	`asset_id` text NOT NULL,
 	`frequency` text,
@@ -158,7 +158,7 @@ CREATE TABLE `asset_maintenance_schedules` (
 	FOREIGN KEY (`asset_id`) REFERENCES `assets`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `asset_maintenances` (
+CREATE TABLE IF NOT EXISTS `asset_maintenances` (
 	`id` text PRIMARY KEY NOT NULL,
 	`asset_id` text NOT NULL,
 	`type` text,
@@ -175,7 +175,7 @@ CREATE TABLE `asset_maintenances` (
 	FOREIGN KEY (`engineer_id`) REFERENCES `employees`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `asset_models` (
+CREATE TABLE IF NOT EXISTS `asset_models` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`manufacturer_id` text,
@@ -188,7 +188,7 @@ CREATE TABLE `asset_models` (
 	FOREIGN KEY (`category_id`) REFERENCES `asset_categories`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `asset_monitorings` (
+CREATE TABLE IF NOT EXISTS `asset_monitorings` (
 	`id` text PRIMARY KEY NOT NULL,
 	`asset_id` text NOT NULL,
 	`alert_type` text,
@@ -201,7 +201,7 @@ CREATE TABLE `asset_monitorings` (
 	FOREIGN KEY (`asset_id`) REFERENCES `assets`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `asset_networks` (
+CREATE TABLE IF NOT EXISTS `asset_networks` (
 	`id` text PRIMARY KEY NOT NULL,
 	`asset_id` text NOT NULL,
 	`public_ip` text,
@@ -221,7 +221,7 @@ CREATE TABLE `asset_networks` (
 	FOREIGN KEY (`asset_id`) REFERENCES `assets`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `asset_warranties` (
+CREATE TABLE IF NOT EXISTS `asset_warranties` (
 	`id` text PRIMARY KEY NOT NULL,
 	`asset_id` text NOT NULL,
 	`vendor` text,
@@ -238,7 +238,7 @@ CREATE TABLE `asset_warranties` (
 	FOREIGN KEY (`asset_id`) REFERENCES `assets`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `assets` (
+CREATE TABLE IF NOT EXISTS `assets` (
 	`id` text PRIMARY KEY NOT NULL,
 	`asset_code` text NOT NULL,
 	`name` text NOT NULL,
@@ -302,11 +302,11 @@ CREATE TABLE `assets` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `assets_asset_code_unique` ON `assets` (`asset_code`);--> statement-breakpoint
-CREATE INDEX `asset_code_idx` ON `assets` (`asset_code`);--> statement-breakpoint
-CREATE INDEX `asset_customer_idx` ON `assets` (`customer_id`);--> statement-breakpoint
-CREATE INDEX `asset_contract_idx` ON `assets` (`contract_id`);--> statement-breakpoint
-CREATE INDEX `asset_status_idx` ON `assets` (`status`);--> statement-breakpoint
-CREATE TABLE `attendance` (
+CREATE INDEX IF NOT EXISTS `asset_code_idx` ON `assets` (`asset_code`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `asset_customer_idx` ON `assets` (`customer_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `asset_contract_idx` ON `assets` (`contract_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `asset_status_idx` ON `assets` (`status`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `attendance` (
 	`id` text PRIMARY KEY NOT NULL,
 	`employee_id` text NOT NULL,
 	`date` text NOT NULL,
@@ -317,7 +317,7 @@ CREATE TABLE `attendance` (
 	FOREIGN KEY (`employee_id`) REFERENCES `employees`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `audit_permissions` (
+CREATE TABLE IF NOT EXISTS `audit_permissions` (
 	`id` text PRIMARY KEY NOT NULL,
 	`action` text NOT NULL,
 	`entity_type` text NOT NULL,
@@ -328,7 +328,7 @@ CREATE TABLE `audit_permissions` (
 	FOREIGN KEY (`performed_by`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `branch_audits` (
+CREATE TABLE IF NOT EXISTS `branch_audits` (
 	`id` text PRIMARY KEY NOT NULL,
 	`branch_id` text NOT NULL,
 	`action` text NOT NULL,
@@ -338,7 +338,7 @@ CREATE TABLE `branch_audits` (
 	FOREIGN KEY (`branch_id`) REFERENCES `branches`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `branches` (
+CREATE TABLE IF NOT EXISTS `branches` (
 	`id` text PRIMARY KEY NOT NULL,
 	`company_id` text NOT NULL,
 	`code` text NOT NULL,
@@ -372,7 +372,7 @@ CREATE TABLE `branches` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `branches_code_unique` ON `branches` (`code`);--> statement-breakpoint
-CREATE TABLE `ci_categories` (
+CREATE TABLE IF NOT EXISTS `ci_categories` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`description` text,
@@ -382,7 +382,7 @@ CREATE TABLE `ci_categories` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `ci_categories_name_unique` ON `ci_categories` (`name`);--> statement-breakpoint
-CREATE TABLE `ci_documents` (
+CREATE TABLE IF NOT EXISTS `ci_documents` (
 	`id` text PRIMARY KEY NOT NULL,
 	`ci_id` text NOT NULL,
 	`document_name` text,
@@ -393,7 +393,7 @@ CREATE TABLE `ci_documents` (
 	FOREIGN KEY (`ci_id`) REFERENCES `cis`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `ci_environments` (
+CREATE TABLE IF NOT EXISTS `ci_environments` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`description` text,
@@ -403,7 +403,7 @@ CREATE TABLE `ci_environments` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `ci_environments_name_unique` ON `ci_environments` (`name`);--> statement-breakpoint
-CREATE TABLE `ci_histories` (
+CREATE TABLE IF NOT EXISTS `ci_histories` (
 	`id` text PRIMARY KEY NOT NULL,
 	`ci_id` text NOT NULL,
 	`action` text,
@@ -414,7 +414,7 @@ CREATE TABLE `ci_histories` (
 	FOREIGN KEY (`ci_id`) REFERENCES `cis`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `ci_relationships` (
+CREATE TABLE IF NOT EXISTS `ci_relationships` (
 	`id` text PRIMARY KEY NOT NULL,
 	`parent_ci_id` text NOT NULL,
 	`child_ci_id` text NOT NULL,
@@ -429,7 +429,7 @@ CREATE TABLE `ci_relationships` (
 	FOREIGN KEY (`child_ci_id`) REFERENCES `cis`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `ci_statuses` (
+CREATE TABLE IF NOT EXISTS `ci_statuses` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`description` text,
@@ -439,7 +439,7 @@ CREATE TABLE `ci_statuses` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `ci_statuses_name_unique` ON `ci_statuses` (`name`);--> statement-breakpoint
-CREATE TABLE `ci_tags` (
+CREATE TABLE IF NOT EXISTS `ci_tags` (
 	`id` text PRIMARY KEY NOT NULL,
 	`ci_id` text NOT NULL,
 	`tag` text NOT NULL,
@@ -449,7 +449,7 @@ CREATE TABLE `ci_tags` (
 	FOREIGN KEY (`ci_id`) REFERENCES `cis`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `cis` (
+CREATE TABLE IF NOT EXISTS `cis` (
 	`id` text PRIMARY KEY NOT NULL,
 	`ci_code` text NOT NULL,
 	`name` text NOT NULL,
@@ -488,10 +488,10 @@ CREATE TABLE `cis` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `cis_ci_code_unique` ON `cis` (`ci_code`);--> statement-breakpoint
-CREATE INDEX `ci_code_idx` ON `cis` (`ci_code`);--> statement-breakpoint
-CREATE INDEX `ci_customer_idx` ON `cis` (`customer_id`);--> statement-breakpoint
-CREATE INDEX `ci_asset_idx` ON `cis` (`asset_id`);--> statement-breakpoint
-CREATE TABLE `companies` (
+CREATE INDEX IF NOT EXISTS `ci_code_idx` ON `cis` (`ci_code`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `ci_customer_idx` ON `cis` (`customer_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `ci_asset_idx` ON `cis` (`asset_id`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `companies` (
 	`id` text PRIMARY KEY NOT NULL,
 	`code` text NOT NULL,
 	`name` text NOT NULL,
@@ -525,7 +525,7 @@ CREATE TABLE `companies` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `companies_code_unique` ON `companies` (`code`);--> statement-breakpoint
-CREATE TABLE `company_audits` (
+CREATE TABLE IF NOT EXISTS `company_audits` (
 	`id` text PRIMARY KEY NOT NULL,
 	`company_id` text NOT NULL,
 	`action` text NOT NULL,
@@ -535,7 +535,7 @@ CREATE TABLE `company_audits` (
 	FOREIGN KEY (`company_id`) REFERENCES `companies`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `contract_approvals` (
+CREATE TABLE IF NOT EXISTS `contract_approvals` (
 	`id` text PRIMARY KEY NOT NULL,
 	`contract_id` text NOT NULL,
 	`approval_workflow` text,
@@ -551,7 +551,7 @@ CREATE TABLE `contract_approvals` (
 	FOREIGN KEY (`approved_by`) REFERENCES `employees`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `contract_attachments` (
+CREATE TABLE IF NOT EXISTS `contract_attachments` (
 	`id` text PRIMARY KEY NOT NULL,
 	`contract_id` text NOT NULL,
 	`file_name` text NOT NULL,
@@ -563,7 +563,7 @@ CREATE TABLE `contract_attachments` (
 	FOREIGN KEY (`contract_id`) REFERENCES `contracts`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `contract_billings` (
+CREATE TABLE IF NOT EXISTS `contract_billings` (
 	`id` text PRIMARY KEY NOT NULL,
 	`contract_id` text NOT NULL,
 	`billing_cycle` text,
@@ -579,7 +579,7 @@ CREATE TABLE `contract_billings` (
 	FOREIGN KEY (`contract_id`) REFERENCES `contracts`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `contract_coverages` (
+CREATE TABLE IF NOT EXISTS `contract_coverages` (
 	`id` text PRIMARY KEY NOT NULL,
 	`contract_id` text NOT NULL,
 	`covered_asset_id` text,
@@ -598,7 +598,7 @@ CREATE TABLE `contract_coverages` (
 	FOREIGN KEY (`covered_branch_id`) REFERENCES `branches`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `contract_devices` (
+CREATE TABLE IF NOT EXISTS `contract_devices` (
 	`id` text PRIMARY KEY NOT NULL,
 	`contract_id` text NOT NULL,
 	`maximum_device` integer,
@@ -615,7 +615,7 @@ CREATE TABLE `contract_devices` (
 	FOREIGN KEY (`contract_id`) REFERENCES `contracts`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `contract_documents` (
+CREATE TABLE IF NOT EXISTS `contract_documents` (
 	`id` text PRIMARY KEY NOT NULL,
 	`contract_id` text NOT NULL,
 	`document_name` text NOT NULL,
@@ -629,7 +629,7 @@ CREATE TABLE `contract_documents` (
 	FOREIGN KEY (`contract_id`) REFERENCES `contracts`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `contract_histories` (
+CREATE TABLE IF NOT EXISTS `contract_histories` (
 	`id` text PRIMARY KEY NOT NULL,
 	`contract_id` text NOT NULL,
 	`action` text,
@@ -640,7 +640,7 @@ CREATE TABLE `contract_histories` (
 	FOREIGN KEY (`contract_id`) REFERENCES `contracts`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `contract_renewals` (
+CREATE TABLE IF NOT EXISTS `contract_renewals` (
 	`id` text PRIMARY KEY NOT NULL,
 	`contract_id` text NOT NULL,
 	`renewal_date` text,
@@ -655,7 +655,7 @@ CREATE TABLE `contract_renewals` (
 	FOREIGN KEY (`contract_id`) REFERENCES `contracts`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `contract_services` (
+CREATE TABLE IF NOT EXISTS `contract_services` (
 	`id` text PRIMARY KEY NOT NULL,
 	`contract_id` text NOT NULL,
 	`service_name` text NOT NULL,
@@ -677,7 +677,7 @@ CREATE TABLE `contract_services` (
 	FOREIGN KEY (`contract_id`) REFERENCES `contracts`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `contract_slas` (
+CREATE TABLE IF NOT EXISTS `contract_slas` (
 	`id` text PRIMARY KEY NOT NULL,
 	`contract_id` text NOT NULL,
 	`response_time` text,
@@ -696,7 +696,7 @@ CREATE TABLE `contract_slas` (
 	FOREIGN KEY (`contract_id`) REFERENCES `contracts`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `contracts` (
+CREATE TABLE IF NOT EXISTS `contracts` (
 	`id` text PRIMARY KEY NOT NULL,
 	`contract_number` text NOT NULL,
 	`customer_id` text NOT NULL,
@@ -729,10 +729,10 @@ CREATE TABLE `contracts` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `contracts_contract_number_unique` ON `contracts` (`contract_number`);--> statement-breakpoint
-CREATE INDEX `contract_number_idx` ON `contracts` (`contract_number`);--> statement-breakpoint
-CREATE INDEX `contract_customer_idx` ON `contracts` (`customer_id`);--> statement-breakpoint
-CREATE INDEX `contract_status_idx` ON `contracts` (`status`);--> statement-breakpoint
-CREATE TABLE `customer_addresses` (
+CREATE INDEX IF NOT EXISTS `contract_number_idx` ON `contracts` (`contract_number`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `contract_customer_idx` ON `contracts` (`customer_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `contract_status_idx` ON `contracts` (`status`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `customer_addresses` (
 	`id` text PRIMARY KEY NOT NULL,
 	`customer_id` text NOT NULL,
 	`address_type` text,
@@ -754,7 +754,7 @@ CREATE TABLE `customer_addresses` (
 	FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `customer_bank_accounts` (
+CREATE TABLE IF NOT EXISTS `customer_bank_accounts` (
 	`id` text PRIMARY KEY NOT NULL,
 	`customer_id` text NOT NULL,
 	`bank_name` text NOT NULL,
@@ -770,7 +770,7 @@ CREATE TABLE `customer_bank_accounts` (
 	FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `customer_communications` (
+CREATE TABLE IF NOT EXISTS `customer_communications` (
 	`id` text PRIMARY KEY NOT NULL,
 	`customer_id` text NOT NULL,
 	`contact_id` text,
@@ -788,7 +788,7 @@ CREATE TABLE `customer_communications` (
 	FOREIGN KEY (`employee_id`) REFERENCES `employees`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `customer_contacts` (
+CREATE TABLE IF NOT EXISTS `customer_contacts` (
 	`id` text PRIMARY KEY NOT NULL,
 	`customer_id` text NOT NULL,
 	`name` text NOT NULL,
@@ -807,7 +807,7 @@ CREATE TABLE `customer_contacts` (
 	FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `customer_documents` (
+CREATE TABLE IF NOT EXISTS `customer_documents` (
 	`id` text PRIMARY KEY NOT NULL,
 	`customer_id` text NOT NULL,
 	`document_type` text,
@@ -822,7 +822,7 @@ CREATE TABLE `customer_documents` (
 	FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `customers` (
+CREATE TABLE IF NOT EXISTS `customers` (
 	`id` text PRIMARY KEY NOT NULL,
 	`code` text NOT NULL,
 	`name` text NOT NULL,
@@ -858,11 +858,11 @@ CREATE TABLE `customers` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `customers_code_unique` ON `customers` (`code`);--> statement-breakpoint
-CREATE INDEX `name_idx` ON `customers` (`name`);--> statement-breakpoint
-CREATE INDEX `code_idx` ON `customers` (`code`);--> statement-breakpoint
-CREATE INDEX `industry_idx` ON `customers` (`industry_id`);--> statement-breakpoint
-CREATE INDEX `category_idx` ON `customers` (`category_id`);--> statement-breakpoint
-CREATE TABLE `dashboard_stats` (
+CREATE INDEX IF NOT EXISTS `name_idx` ON `customers` (`name`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `code_idx` ON `customers` (`code`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `industry_idx` ON `customers` (`industry_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `category_idx` ON `customers` (`category_id`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `dashboard_stats` (
 	`id` text PRIMARY KEY NOT NULL,
 	`active_employees` integer DEFAULT 0 NOT NULL,
 	`total_departments` integer DEFAULT 0 NOT NULL,
@@ -871,7 +871,7 @@ CREATE TABLE `dashboard_stats` (
 	`updated_at` text DEFAULT CURRENT_TIMESTAMP
 );
 --> statement-breakpoint
-CREATE TABLE `data_scopes` (
+CREATE TABLE IF NOT EXISTS `data_scopes` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`description` text,
@@ -880,7 +880,7 @@ CREATE TABLE `data_scopes` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `data_scopes_name_unique` ON `data_scopes` (`name`);--> statement-breakpoint
-CREATE TABLE `department_audits` (
+CREATE TABLE IF NOT EXISTS `department_audits` (
 	`id` text PRIMARY KEY NOT NULL,
 	`department_id` text NOT NULL,
 	`action` text NOT NULL,
@@ -890,7 +890,7 @@ CREATE TABLE `department_audits` (
 	FOREIGN KEY (`department_id`) REFERENCES `departments`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `departments` (
+CREATE TABLE IF NOT EXISTS `departments` (
 	`id` text PRIMARY KEY NOT NULL,
 	`company_id` text NOT NULL,
 	`branch_id` text NOT NULL,
@@ -914,7 +914,7 @@ CREATE TABLE `departments` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `departments_code_unique` ON `departments` (`code`);--> statement-breakpoint
-CREATE TABLE `division_audits` (
+CREATE TABLE IF NOT EXISTS `division_audits` (
 	`id` text PRIMARY KEY NOT NULL,
 	`division_id` text NOT NULL,
 	`action` text NOT NULL,
@@ -924,7 +924,7 @@ CREATE TABLE `division_audits` (
 	FOREIGN KEY (`division_id`) REFERENCES `divisions`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `divisions` (
+CREATE TABLE IF NOT EXISTS `divisions` (
 	`id` text PRIMARY KEY NOT NULL,
 	`company_id` text NOT NULL,
 	`branch_id` text NOT NULL,
@@ -944,7 +944,49 @@ CREATE TABLE `divisions` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `divisions_code_unique` ON `divisions` (`code`);--> statement-breakpoint
-CREATE TABLE `employee_assets` (
+CREATE TABLE IF NOT EXISTS `emp_assignment` (
+	`id` text PRIMARY KEY NOT NULL,
+	`employment_id` text NOT NULL,
+	`organization_id` text NOT NULL,
+	`position_id` text NOT NULL,
+	`manager_id` text,
+	`supervisor_id` text,
+	`effective_date` text NOT NULL,
+	`end_date` text,
+	`status` text NOT NULL,
+	`is_active` integer DEFAULT true,
+	`is_deleted` integer DEFAULT false,
+	`version` integer DEFAULT 1 NOT NULL,
+	`created_at` text DEFAULT CURRENT_TIMESTAMP,
+	`updated_at` text,
+	`deleted_at` text,
+	FOREIGN KEY (`employment_id`) REFERENCES `emp_platform`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`organization_id`) REFERENCES `org_platform`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`position_id`) REFERENCES `pos_platform`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`manager_id`) REFERENCES `emp_platform`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`supervisor_id`) REFERENCES `emp_platform`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `emp_platform` (
+	`id` text PRIMARY KEY NOT NULL,
+	`employee_number` text NOT NULL,
+	`full_name` text NOT NULL,
+	`organization_id` text,
+	`employment_type` text NOT NULL,
+	`status` text NOT NULL,
+	`join_date` text NOT NULL,
+	`termination_date` text,
+	`is_active` integer DEFAULT true,
+	`is_deleted` integer DEFAULT false,
+	`version` integer DEFAULT 1 NOT NULL,
+	`created_at` text DEFAULT CURRENT_TIMESTAMP,
+	`updated_at` text,
+	`deleted_at` text,
+	FOREIGN KEY (`organization_id`) REFERENCES `org_platform`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `emp_platform_employee_number_unique` ON `emp_platform` (`employee_number`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `employee_assets` (
 	`id` text PRIMARY KEY NOT NULL,
 	`employee_id` text NOT NULL,
 	`asset_id` text NOT NULL,
@@ -954,7 +996,7 @@ CREATE TABLE `employee_assets` (
 	FOREIGN KEY (`asset_id`) REFERENCES `assets`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `employee_banks` (
+CREATE TABLE IF NOT EXISTS `employee_banks` (
 	`id` text PRIMARY KEY NOT NULL,
 	`employee_id` text NOT NULL,
 	`bank_name` text NOT NULL,
@@ -962,14 +1004,14 @@ CREATE TABLE `employee_banks` (
 	`account_holder` text NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `employee_bpjs` (
+CREATE TABLE IF NOT EXISTS `employee_bpjs` (
 	`id` text PRIMARY KEY NOT NULL,
 	`employee_id` text NOT NULL,
 	`bpjs_kesehatan` text,
 	`bpjs_ketenagakerjaan` text
 );
 --> statement-breakpoint
-CREATE TABLE `employee_certifications` (
+CREATE TABLE IF NOT EXISTS `employee_certifications` (
 	`id` text PRIMARY KEY NOT NULL,
 	`employee_id` text NOT NULL,
 	`certification_name` text NOT NULL,
@@ -979,7 +1021,7 @@ CREATE TABLE `employee_certifications` (
 	`credential_id` text
 );
 --> statement-breakpoint
-CREATE TABLE `employee_contracts` (
+CREATE TABLE IF NOT EXISTS `employee_contracts` (
 	`id` text PRIMARY KEY NOT NULL,
 	`employee_id` text NOT NULL,
 	`contract_type` text NOT NULL,
@@ -988,14 +1030,14 @@ CREATE TABLE `employee_contracts` (
 	`status` text NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `employee_documents` (
+CREATE TABLE IF NOT EXISTS `employee_documents` (
 	`id` text PRIMARY KEY NOT NULL,
 	`employee_id` text NOT NULL,
 	`document_type` text NOT NULL,
 	`file_url` text NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `employee_emergency_contacts` (
+CREATE TABLE IF NOT EXISTS `employee_emergency_contacts` (
 	`id` text PRIMARY KEY NOT NULL,
 	`employee_id` text NOT NULL,
 	`name` text NOT NULL,
@@ -1003,7 +1045,7 @@ CREATE TABLE `employee_emergency_contacts` (
 	`phone` text NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `employee_families` (
+CREATE TABLE IF NOT EXISTS `employee_families` (
 	`id` text PRIMARY KEY NOT NULL,
 	`employee_id` text NOT NULL,
 	`name` text NOT NULL,
@@ -1011,7 +1053,7 @@ CREATE TABLE `employee_families` (
 	`date_of_birth` text
 );
 --> statement-breakpoint
-CREATE TABLE `employee_leaves` (
+CREATE TABLE IF NOT EXISTS `employee_leaves` (
 	`id` text PRIMARY KEY NOT NULL,
 	`employee_id` text NOT NULL,
 	`leave_type` text NOT NULL,
@@ -1020,7 +1062,7 @@ CREATE TABLE `employee_leaves` (
 	`status` text NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `employee_overtimes` (
+CREATE TABLE IF NOT EXISTS `employee_overtimes` (
 	`id` text PRIMARY KEY NOT NULL,
 	`employee_id` text NOT NULL,
 	`date` text NOT NULL,
@@ -1028,7 +1070,7 @@ CREATE TABLE `employee_overtimes` (
 	`status` text NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `employee_performances` (
+CREATE TABLE IF NOT EXISTS `employee_performances` (
 	`id` text PRIMARY KEY NOT NULL,
 	`employee_id` text NOT NULL,
 	`review_period` text NOT NULL,
@@ -1036,7 +1078,7 @@ CREATE TABLE `employee_performances` (
 	`comments` text
 );
 --> statement-breakpoint
-CREATE TABLE `employee_position_histories` (
+CREATE TABLE IF NOT EXISTS `employee_position_histories` (
 	`id` text PRIMARY KEY NOT NULL,
 	`employee_id` text NOT NULL,
 	`position` text NOT NULL,
@@ -1045,7 +1087,7 @@ CREATE TABLE `employee_position_histories` (
 	`end_date` text
 );
 --> statement-breakpoint
-CREATE TABLE `employee_promotion_histories` (
+CREATE TABLE IF NOT EXISTS `employee_promotion_histories` (
 	`id` text PRIMARY KEY NOT NULL,
 	`employee_id` text NOT NULL,
 	`old_position` text NOT NULL,
@@ -1053,14 +1095,14 @@ CREATE TABLE `employee_promotion_histories` (
 	`promotion_date` text NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `employee_salary_histories` (
+CREATE TABLE IF NOT EXISTS `employee_salary_histories` (
 	`id` text PRIMARY KEY NOT NULL,
 	`employee_id` text NOT NULL,
 	`basic_salary` real NOT NULL,
 	`effective_date` text NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `employee_shifts` (
+CREATE TABLE IF NOT EXISTS `employee_shifts` (
 	`id` text PRIMARY KEY NOT NULL,
 	`employee_id` text NOT NULL,
 	`shift_name` text NOT NULL,
@@ -1068,14 +1110,14 @@ CREATE TABLE `employee_shifts` (
 	`end_time` text NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `employee_taxes` (
+CREATE TABLE IF NOT EXISTS `employee_taxes` (
 	`id` text PRIMARY KEY NOT NULL,
 	`employee_id` text NOT NULL,
 	`npwp` text NOT NULL,
 	`ptkp_status` text NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `employee_trainings` (
+CREATE TABLE IF NOT EXISTS `employee_trainings` (
 	`id` text PRIMARY KEY NOT NULL,
 	`employee_id` text NOT NULL,
 	`training_name` text NOT NULL,
@@ -1083,20 +1125,48 @@ CREATE TABLE `employee_trainings` (
 	`result` text
 );
 --> statement-breakpoint
-CREATE TABLE `employees` (
+CREATE TABLE IF NOT EXISTS `employees` (
 	`id` text PRIMARY KEY NOT NULL,
 	`employee_number` text NOT NULL,
+	`national_identity_number` text,
 	`name` text NOT NULL,
-	`email` text NOT NULL,
-	`phone` text,
+	`preferred_name` text,
+	`birth_place` text,
+	`birth_date` text,
+	`gender` text,
+	`religion` text,
+	`nationality` text,
+	`marital_status` text,
+	`blood_type` text,
+	`photo` text,
+	`digital_signature` text,
+	`email` text,
+	`personal_email` text,
+	`mobile_phone` text,
+	`home_phone` text,
+	`emergency_contact_name` text,
+	`emergency_contact_number` text,
+	`employment_status` text,
+	`employment_type` text,
+	`hire_date` text,
+	`join_date` text,
+	`confirmation_date` text,
+	`contract_start_date` text,
+	`contract_end_date` text,
+	`termination_date` text,
 	`company_id` text,
 	`branch_id` text,
+	`division_id` text,
 	`department_id` text,
 	`section_id` text,
+	`team_id` text,
 	`position_id` text,
+	`job_grade_id` text,
+	`manager_employee_id` text,
+	`supervisor_employee_id` text,
+	`work_location` text,
+	`shift_group` text,
 	`status` text DEFAULT 'Active' NOT NULL,
-	`join_date` text,
-	`avatar` text,
 	`created_at` text DEFAULT CURRENT_TIMESTAMP,
 	`updated_at` text,
 	`created_by` text,
@@ -1105,13 +1175,16 @@ CREATE TABLE `employees` (
 	`deleted_by` text,
 	FOREIGN KEY (`company_id`) REFERENCES `companies`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`branch_id`) REFERENCES `branches`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`division_id`) REFERENCES `divisions`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`department_id`) REFERENCES `departments`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`section_id`) REFERENCES `sections`(`id`) ON UPDATE no action ON DELETE no action,
-	FOREIGN KEY (`position_id`) REFERENCES `positions`(`id`) ON UPDATE no action ON DELETE no action
+	FOREIGN KEY (`team_id`) REFERENCES `teams`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`position_id`) REFERENCES `positions`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`job_grade_id`) REFERENCES `job_grades`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `employees_employee_number_unique` ON `employees` (`employee_number`);--> statement-breakpoint
-CREATE TABLE `inventory_transactions` (
+CREATE TABLE IF NOT EXISTS `inventory_transactions` (
 	`id` text PRIMARY KEY NOT NULL,
 	`product_id` text NOT NULL,
 	`type` text NOT NULL,
@@ -1121,7 +1194,7 @@ CREATE TABLE `inventory_transactions` (
 	`reference_type` text NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `invoice_items` (
+CREATE TABLE IF NOT EXISTS `invoice_items` (
 	`id` text PRIMARY KEY NOT NULL,
 	`invoice_id` text NOT NULL,
 	`product_name` text NOT NULL,
@@ -1133,7 +1206,7 @@ CREATE TABLE `invoice_items` (
 	`total` integer NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `invoices` (
+CREATE TABLE IF NOT EXISTS `invoices` (
 	`id` text PRIMARY KEY NOT NULL,
 	`invoice_number` text NOT NULL,
 	`date` text NOT NULL,
@@ -1159,7 +1232,36 @@ CREATE TABLE `invoices` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `invoices_invoice_number_unique` ON `invoices` (`invoice_number`);--> statement-breakpoint
-CREATE TABLE `job_grades` (
+CREATE TABLE IF NOT EXISTS `job_family` (
+	`id` text PRIMARY KEY NOT NULL,
+	`code` text NOT NULL,
+	`name` text NOT NULL,
+	`description` text,
+	`is_active` integer DEFAULT true,
+	`is_deleted` integer DEFAULT false,
+	`version` integer DEFAULT 1 NOT NULL,
+	`created_at` text DEFAULT CURRENT_TIMESTAMP,
+	`updated_at` text,
+	`deleted_at` text
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `job_family_code_unique` ON `job_family` (`code`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `job_grade` (
+	`id` text PRIMARY KEY NOT NULL,
+	`code` text NOT NULL,
+	`name` text NOT NULL,
+	`level` integer NOT NULL,
+	`description` text,
+	`is_active` integer DEFAULT true,
+	`is_deleted` integer DEFAULT false,
+	`version` integer DEFAULT 1 NOT NULL,
+	`created_at` text DEFAULT CURRENT_TIMESTAMP,
+	`updated_at` text,
+	`deleted_at` text
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `job_grade_code_unique` ON `job_grade` (`code`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `job_grades` (
 	`id` text PRIMARY KEY NOT NULL,
 	`code` text NOT NULL,
 	`name` text NOT NULL,
@@ -1179,7 +1281,25 @@ CREATE TABLE `job_grades` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `job_grades_code_unique` ON `job_grades` (`code`);--> statement-breakpoint
-CREATE TABLE `leads` (
+CREATE TABLE IF NOT EXISTS `job_platform` (
+	`id` text PRIMARY KEY NOT NULL,
+	`code` text NOT NULL,
+	`name` text NOT NULL,
+	`job_family_id` text NOT NULL,
+	`job_grade_id` text NOT NULL,
+	`description` text,
+	`is_active` integer DEFAULT true,
+	`is_deleted` integer DEFAULT false,
+	`version` integer DEFAULT 1 NOT NULL,
+	`created_at` text DEFAULT CURRENT_TIMESTAMP,
+	`updated_at` text,
+	`deleted_at` text,
+	FOREIGN KEY (`job_family_id`) REFERENCES `job_family`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`job_grade_id`) REFERENCES `job_grade`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `job_platform_code_unique` ON `job_platform` (`code`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `leads` (
 	`id` text PRIMARY KEY NOT NULL,
 	`company_name` text NOT NULL,
 	`pic` text NOT NULL,
@@ -1195,7 +1315,7 @@ CREATE TABLE `leads` (
 	FOREIGN KEY (`owner_id`) REFERENCES `employees`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `manufacturers` (
+CREATE TABLE IF NOT EXISTS `manufacturers` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`support_contact` text,
@@ -1206,7 +1326,7 @@ CREATE TABLE `manufacturers` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `manufacturers_name_unique` ON `manufacturers` (`name`);--> statement-breakpoint
-CREATE TABLE `menu_permissions` (
+CREATE TABLE IF NOT EXISTS `menu_permissions` (
 	`id` text PRIMARY KEY NOT NULL,
 	`role_id` text NOT NULL,
 	`menu` text NOT NULL,
@@ -1214,7 +1334,58 @@ CREATE TABLE `menu_permissions` (
 	FOREIGN KEY (`role_id`) REFERENCES `roles`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `payroll` (
+CREATE TABLE IF NOT EXISTS `org_audit` (
+	`id` text PRIMARY KEY NOT NULL,
+	`org_id` text NOT NULL,
+	`action` text NOT NULL,
+	`changes_json` text,
+	`actor` text NOT NULL,
+	`timestamp` text DEFAULT CURRENT_TIMESTAMP
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `org_platform` (
+	`id` text PRIMARY KEY NOT NULL,
+	`code` text NOT NULL,
+	`name` text NOT NULL,
+	`type` text NOT NULL,
+	`level` integer DEFAULT 0 NOT NULL,
+	`parent_id` text,
+	`path` text,
+	`is_active` integer DEFAULT true,
+	`is_deleted` integer DEFAULT false,
+	`effective_date` text DEFAULT CURRENT_TIMESTAMP,
+	`version` integer DEFAULT 1 NOT NULL,
+	`created_at` text DEFAULT CURRENT_TIMESTAMP,
+	`updated_at` text,
+	`created_by` text,
+	`updated_by` text,
+	`deleted_at` text,
+	`deleted_by` text,
+	FOREIGN KEY (`parent_id`) REFERENCES `org_platform`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `org_platform_code_unique` ON `org_platform` (`code`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `org_relationships` (
+	`id` text PRIMARY KEY NOT NULL,
+	`ancestor_id` text NOT NULL,
+	`descendant_id` text NOT NULL,
+	`depth` integer NOT NULL,
+	`created_at` text DEFAULT CURRENT_TIMESTAMP
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `org_timeline` (
+	`id` text PRIMARY KEY NOT NULL,
+	`org_id` text NOT NULL,
+	`action` text NOT NULL,
+	`old_value_json` text,
+	`new_value_json` text,
+	`actor` text NOT NULL,
+	`trace_id` text,
+	`correlation_id` text,
+	`timestamp` text DEFAULT CURRENT_TIMESTAMP
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `payroll` (
 	`id` text PRIMARY KEY NOT NULL,
 	`employee_id` text NOT NULL,
 	`period` text NOT NULL,
@@ -1226,7 +1397,7 @@ CREATE TABLE `payroll` (
 	FOREIGN KEY (`employee_id`) REFERENCES `employees`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `permissions` (
+CREATE TABLE IF NOT EXISTS `permissions` (
 	`id` text PRIMARY KEY NOT NULL,
 	`module` text NOT NULL,
 	`action` text NOT NULL,
@@ -1236,7 +1407,27 @@ CREATE TABLE `permissions` (
 	`created_at` text DEFAULT CURRENT_TIMESTAMP
 );
 --> statement-breakpoint
-CREATE TABLE `positions` (
+CREATE TABLE IF NOT EXISTS `pos_platform` (
+	`id` text PRIMARY KEY NOT NULL,
+	`code` text NOT NULL,
+	`name` text NOT NULL,
+	`company_id` text,
+	`job_id` text,
+	`employment_type` text,
+	`status` text DEFAULT 'ACTIVE' NOT NULL,
+	`effective_date` text NOT NULL,
+	`is_active` integer DEFAULT true,
+	`is_deleted` integer DEFAULT false,
+	`version` integer DEFAULT 1 NOT NULL,
+	`created_at` text DEFAULT CURRENT_TIMESTAMP,
+	`updated_at` text,
+	`deleted_at` text,
+	FOREIGN KEY (`company_id`) REFERENCES `org_platform`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`job_id`) REFERENCES `job_platform`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `pos_platform_code_unique` ON `pos_platform` (`code`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `positions` (
 	`id` text PRIMARY KEY NOT NULL,
 	`code` text NOT NULL,
 	`name` text NOT NULL,
@@ -1279,14 +1470,121 @@ CREATE TABLE `positions` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `positions_code_unique` ON `positions` (`code`);--> statement-breakpoint
-CREATE INDEX `idx_positions_code` ON `positions` (`code`);--> statement-breakpoint
-CREATE INDEX `idx_positions_department_id` ON `positions` (`department_id`);--> statement-breakpoint
-CREATE INDEX `idx_positions_section_id` ON `positions` (`section_id`);--> statement-breakpoint
-CREATE INDEX `idx_positions_team_id` ON `positions` (`team_id`);--> statement-breakpoint
-CREATE INDEX `idx_positions_job_grade_id` ON `positions` (`job_grade_id`);--> statement-breakpoint
-CREATE INDEX `idx_positions_parent_position_id` ON `positions` (`parent_position_id`);--> statement-breakpoint
-CREATE INDEX `idx_positions_status` ON `positions` (`is_active`);--> statement-breakpoint
-CREATE TABLE `production_orders` (
+CREATE INDEX IF NOT EXISTS `idx_positions_code` ON `positions` (`code`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_positions_department_id` ON `positions` (`department_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_positions_section_id` ON `positions` (`section_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_positions_team_id` ON `positions` (`team_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_positions_job_grade_id` ON `positions` (`job_grade_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_positions_parent_position_id` ON `positions` (`parent_position_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_positions_status` ON `positions` (`is_active`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `process_activities` (
+	`id` text PRIMARY KEY NOT NULL,
+	`process_instance_id` text NOT NULL,
+	`trace_id` text,
+	`activity_type` text NOT NULL,
+	`who` text,
+	`what` text,
+	`when` text DEFAULT CURRENT_TIMESTAMP,
+	`where` text,
+	`result` text,
+	`reference_id` text,
+	`metadata_json` text,
+	FOREIGN KEY (`process_instance_id`) REFERENCES `process_instances`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `process_approvals` (
+	`id` text PRIMARY KEY NOT NULL,
+	`process_instance_id` text NOT NULL,
+	`approver_id` text,
+	`role_id` text,
+	`level` integer DEFAULT 1 NOT NULL,
+	`status` text DEFAULT 'PENDING' NOT NULL,
+	`notes` text,
+	`decided_at` text,
+	`created_at` text DEFAULT CURRENT_TIMESTAMP,
+	`updated_at` text,
+	FOREIGN KEY (`process_instance_id`) REFERENCES `process_instances`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `process_attachments` (
+	`id` text PRIMARY KEY NOT NULL,
+	`process_instance_id` text NOT NULL,
+	`file_name` text NOT NULL,
+	`file_url` text NOT NULL,
+	`uploaded_by` text,
+	`created_at` text DEFAULT CURRENT_TIMESTAMP,
+	FOREIGN KEY (`process_instance_id`) REFERENCES `process_instances`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `process_comments` (
+	`id` text PRIMARY KEY NOT NULL,
+	`process_instance_id` text NOT NULL,
+	`author_id` text,
+	`content` text NOT NULL,
+	`created_at` text DEFAULT CURRENT_TIMESTAMP,
+	`updated_at` text,
+	FOREIGN KEY (`process_instance_id`) REFERENCES `process_instances`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `process_definitions` (
+	`id` text PRIMARY KEY NOT NULL,
+	`code` text NOT NULL,
+	`name` text NOT NULL,
+	`description` text,
+	`version` integer DEFAULT 1 NOT NULL,
+	`states_config_json` text,
+	`transitions_config_json` text,
+	`is_active` integer DEFAULT true,
+	`created_at` text DEFAULT CURRENT_TIMESTAMP,
+	`updated_at` text,
+	`created_by` text
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `process_definitions_code_unique` ON `process_definitions` (`code`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `process_events` (
+	`id` text PRIMARY KEY NOT NULL,
+	`event_name` text NOT NULL,
+	`event_version` text DEFAULT '1.0' NOT NULL,
+	`trace_id` text NOT NULL,
+	`correlation_id` text,
+	`source_module` text,
+	`payload_json` text,
+	`created_at` text DEFAULT CURRENT_TIMESTAMP
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `process_instances` (
+	`id` text PRIMARY KEY NOT NULL,
+	`definition_id` text NOT NULL,
+	`entity_id` text NOT NULL,
+	`entity_type` text NOT NULL,
+	`current_state` text NOT NULL,
+	`status` text NOT NULL,
+	`started_by` text,
+	`started_at` text DEFAULT CURRENT_TIMESTAMP,
+	`completed_at` text,
+	`metadata_json` text,
+	`created_at` text DEFAULT CURRENT_TIMESTAMP,
+	`updated_at` text,
+	FOREIGN KEY (`definition_id`) REFERENCES `process_definitions`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `pi_entity_idx` ON `process_instances` (`entity_type`,`entity_id`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `process_tasks` (
+	`id` text PRIMARY KEY NOT NULL,
+	`process_instance_id` text NOT NULL,
+	`assignee_id` text,
+	`role_id` text,
+	`title` text NOT NULL,
+	`description` text,
+	`status` text DEFAULT 'PENDING' NOT NULL,
+	`due_date` text,
+	`completed_at` text,
+	`created_at` text DEFAULT CURRENT_TIMESTAMP,
+	`updated_at` text,
+	FOREIGN KEY (`process_instance_id`) REFERENCES `process_instances`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `production_orders` (
 	`id` text PRIMARY KEY NOT NULL,
 	`product_id` text NOT NULL,
 	`assigned_to_id` text,
@@ -1299,7 +1597,7 @@ CREATE TABLE `production_orders` (
 	FOREIGN KEY (`assigned_to_id`) REFERENCES `employees`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `products` (
+CREATE TABLE IF NOT EXISTS `products` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`sku` text NOT NULL,
@@ -1309,7 +1607,7 @@ CREATE TABLE `products` (
 	`status` text NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `projects` (
+CREATE TABLE IF NOT EXISTS `projects` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`customer_id` text NOT NULL,
@@ -1323,7 +1621,7 @@ CREATE TABLE `projects` (
 	FOREIGN KEY (`manager_id`) REFERENCES `employees`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `purchase_order_items` (
+CREATE TABLE IF NOT EXISTS `purchase_order_items` (
 	`id` text PRIMARY KEY NOT NULL,
 	`purchase_order_id` text NOT NULL,
 	`product_id` text NOT NULL,
@@ -1331,7 +1629,7 @@ CREATE TABLE `purchase_order_items` (
 	`price` real NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `purchase_orders` (
+CREATE TABLE IF NOT EXISTS `purchase_orders` (
 	`id` text PRIMARY KEY NOT NULL,
 	`vendor_id` text NOT NULL,
 	`date` text NOT NULL,
@@ -1340,7 +1638,7 @@ CREATE TABLE `purchase_orders` (
 	FOREIGN KEY (`vendor_id`) REFERENCES `vendors`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `reference_groups` (
+CREATE TABLE IF NOT EXISTS `reference_groups` (
 	`id` text PRIMARY KEY NOT NULL,
 	`code` text NOT NULL,
 	`name` text NOT NULL,
@@ -1358,7 +1656,7 @@ CREATE TABLE `reference_groups` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `reference_groups_code_unique` ON `reference_groups` (`code`);--> statement-breakpoint
-CREATE TABLE `reference_values` (
+CREATE TABLE IF NOT EXISTS `reference_values` (
 	`id` text PRIMARY KEY NOT NULL,
 	`group_id` text NOT NULL,
 	`code` text NOT NULL,
@@ -1380,7 +1678,7 @@ CREATE TABLE `reference_values` (
 	FOREIGN KEY (`group_id`) REFERENCES `reference_groups`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `role_data_scopes` (
+CREATE TABLE IF NOT EXISTS `role_data_scopes` (
 	`id` text PRIMARY KEY NOT NULL,
 	`role_id` text NOT NULL,
 	`module` text NOT NULL,
@@ -1390,7 +1688,7 @@ CREATE TABLE `role_data_scopes` (
 	FOREIGN KEY (`scope_id`) REFERENCES `data_scopes`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `role_groups` (
+CREATE TABLE IF NOT EXISTS `role_groups` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`description` text,
@@ -1404,7 +1702,7 @@ CREATE TABLE `role_groups` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `role_groups_name_unique` ON `role_groups` (`name`);--> statement-breakpoint
-CREATE TABLE `role_permissions` (
+CREATE TABLE IF NOT EXISTS `role_permissions` (
 	`id` text PRIMARY KEY NOT NULL,
 	`role_id` text NOT NULL,
 	`permission_id` text NOT NULL,
@@ -1414,7 +1712,8 @@ CREATE TABLE `role_permissions` (
 	FOREIGN KEY (`permission_id`) REFERENCES `permissions`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `roles` (
+CREATE TABLE IF NOT EXISTS `roles` (
+	`code` text NOT NULL,
 	`id` text PRIMARY KEY NOT NULL,
 	`group_id` text NOT NULL,
 	`name` text NOT NULL,
@@ -1431,7 +1730,7 @@ CREATE TABLE `roles` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `roles_name_unique` ON `roles` (`name`);--> statement-breakpoint
-CREATE TABLE `sales_order_items` (
+CREATE TABLE IF NOT EXISTS `sales_order_items` (
 	`id` text PRIMARY KEY NOT NULL,
 	`sales_order_id` text NOT NULL,
 	`product_id` text NOT NULL,
@@ -1439,7 +1738,7 @@ CREATE TABLE `sales_order_items` (
 	`price` real NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `sales_orders` (
+CREATE TABLE IF NOT EXISTS `sales_orders` (
 	`id` text PRIMARY KEY NOT NULL,
 	`customer_id` text NOT NULL,
 	`salesperson_id` text,
@@ -1450,7 +1749,7 @@ CREATE TABLE `sales_orders` (
 	FOREIGN KEY (`salesperson_id`) REFERENCES `employees`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `section_audits` (
+CREATE TABLE IF NOT EXISTS `section_audits` (
 	`id` text PRIMARY KEY NOT NULL,
 	`section_id` text NOT NULL,
 	`action` text NOT NULL,
@@ -1460,7 +1759,7 @@ CREATE TABLE `section_audits` (
 	FOREIGN KEY (`section_id`) REFERENCES `sections`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `sections` (
+CREATE TABLE IF NOT EXISTS `sections` (
 	`id` text PRIMARY KEY NOT NULL,
 	`company_id` text NOT NULL,
 	`branch_id` text NOT NULL,
@@ -1484,7 +1783,7 @@ CREATE TABLE `sections` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `sections_code_unique` ON `sections` (`code`);--> statement-breakpoint
-CREATE TABLE `slas` (
+CREATE TABLE IF NOT EXISTS `slas` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`description` text,
@@ -1500,7 +1799,7 @@ CREATE TABLE `slas` (
 	FOREIGN KEY (`priority_id`) REFERENCES `ticket_priorities`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `tags` (
+CREATE TABLE IF NOT EXISTS `tags` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`color` text,
@@ -1513,7 +1812,7 @@ CREATE TABLE `tags` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `tags_name_unique` ON `tags` (`name`);--> statement-breakpoint
-CREATE TABLE `tasks` (
+CREATE TABLE IF NOT EXISTS `tasks` (
 	`id` text PRIMARY KEY NOT NULL,
 	`title` text NOT NULL,
 	`assigned_to_id` text NOT NULL,
@@ -1523,7 +1822,7 @@ CREATE TABLE `tasks` (
 	FOREIGN KEY (`assigned_to_id`) REFERENCES `employees`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `team_audits` (
+CREATE TABLE IF NOT EXISTS `team_audits` (
 	`id` text PRIMARY KEY NOT NULL,
 	`team_id` text NOT NULL,
 	`action` text NOT NULL,
@@ -1533,7 +1832,7 @@ CREATE TABLE `team_audits` (
 	FOREIGN KEY (`team_id`) REFERENCES `teams`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `teams` (
+CREATE TABLE IF NOT EXISTS `teams` (
 	`id` text PRIMARY KEY NOT NULL,
 	`company_id` text NOT NULL,
 	`branch_id` text NOT NULL,
@@ -1559,7 +1858,7 @@ CREATE TABLE `teams` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `teams_code_unique` ON `teams` (`code`);--> statement-breakpoint
-CREATE TABLE `ticket_attachments` (
+CREATE TABLE IF NOT EXISTS `ticket_attachments` (
 	`id` text PRIMARY KEY NOT NULL,
 	`ticket_id` text NOT NULL,
 	`file_name` text NOT NULL,
@@ -1575,7 +1874,7 @@ CREATE TABLE `ticket_attachments` (
 	FOREIGN KEY (`ticket_id`) REFERENCES `tickets`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `ticket_audits` (
+CREATE TABLE IF NOT EXISTS `ticket_audits` (
 	`id` text PRIMARY KEY NOT NULL,
 	`ticket_id` text NOT NULL,
 	`field_name` text NOT NULL,
@@ -1590,7 +1889,7 @@ CREATE TABLE `ticket_audits` (
 	FOREIGN KEY (`ticket_id`) REFERENCES `tickets`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `ticket_categories` (
+CREATE TABLE IF NOT EXISTS `ticket_categories` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`description` text,
@@ -1602,7 +1901,7 @@ CREATE TABLE `ticket_categories` (
 	`deleted_by` text
 );
 --> statement-breakpoint
-CREATE TABLE `ticket_comments` (
+CREATE TABLE IF NOT EXISTS `ticket_comments` (
 	`id` text PRIMARY KEY NOT NULL,
 	`ticket_id` text NOT NULL,
 	`comment` text NOT NULL,
@@ -1616,7 +1915,7 @@ CREATE TABLE `ticket_comments` (
 	FOREIGN KEY (`ticket_id`) REFERENCES `tickets`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `ticket_impacts` (
+CREATE TABLE IF NOT EXISTS `ticket_impacts` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`level` integer NOT NULL,
@@ -1628,7 +1927,7 @@ CREATE TABLE `ticket_impacts` (
 	`deleted_by` text
 );
 --> statement-breakpoint
-CREATE TABLE `ticket_priorities` (
+CREATE TABLE IF NOT EXISTS `ticket_priorities` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`level` integer NOT NULL,
@@ -1641,7 +1940,7 @@ CREATE TABLE `ticket_priorities` (
 	`deleted_by` text
 );
 --> statement-breakpoint
-CREATE TABLE `ticket_statuses` (
+CREATE TABLE IF NOT EXISTS `ticket_statuses` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`is_closed` integer DEFAULT false,
@@ -1654,7 +1953,7 @@ CREATE TABLE `ticket_statuses` (
 	`deleted_by` text
 );
 --> statement-breakpoint
-CREATE TABLE `ticket_sub_categories` (
+CREATE TABLE IF NOT EXISTS `ticket_sub_categories` (
 	`id` text PRIMARY KEY NOT NULL,
 	`category_id` text NOT NULL,
 	`name` text NOT NULL,
@@ -1668,7 +1967,7 @@ CREATE TABLE `ticket_sub_categories` (
 	FOREIGN KEY (`category_id`) REFERENCES `ticket_categories`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `ticket_tags` (
+CREATE TABLE IF NOT EXISTS `ticket_tags` (
 	`id` text PRIMARY KEY NOT NULL,
 	`ticket_id` text NOT NULL,
 	`tag_id` text NOT NULL,
@@ -1682,7 +1981,7 @@ CREATE TABLE `ticket_tags` (
 	FOREIGN KEY (`tag_id`) REFERENCES `tags`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `ticket_timelines` (
+CREATE TABLE IF NOT EXISTS `ticket_timelines` (
 	`id` text PRIMARY KEY NOT NULL,
 	`ticket_id` text NOT NULL,
 	`action` text NOT NULL,
@@ -1696,7 +1995,7 @@ CREATE TABLE `ticket_timelines` (
 	FOREIGN KEY (`ticket_id`) REFERENCES `tickets`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `ticket_urgencies` (
+CREATE TABLE IF NOT EXISTS `ticket_urgencies` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`level` integer NOT NULL,
@@ -1708,7 +2007,7 @@ CREATE TABLE `ticket_urgencies` (
 	`deleted_by` text
 );
 --> statement-breakpoint
-CREATE TABLE `ticket_watchers` (
+CREATE TABLE IF NOT EXISTS `ticket_watchers` (
 	`id` text PRIMARY KEY NOT NULL,
 	`ticket_id` text NOT NULL,
 	`employee_id` text NOT NULL,
@@ -1722,7 +2021,7 @@ CREATE TABLE `ticket_watchers` (
 	FOREIGN KEY (`employee_id`) REFERENCES `employees`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `ticket_worklogs` (
+CREATE TABLE IF NOT EXISTS `ticket_worklogs` (
 	`id` text PRIMARY KEY NOT NULL,
 	`ticket_id` text NOT NULL,
 	`employee_id` text NOT NULL,
@@ -1739,7 +2038,7 @@ CREATE TABLE `ticket_worklogs` (
 	FOREIGN KEY (`employee_id`) REFERENCES `employees`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `tickets` (
+CREATE TABLE IF NOT EXISTS `tickets` (
 	`id` text PRIMARY KEY NOT NULL,
 	`ticket_number` text NOT NULL,
 	`title` text NOT NULL,
@@ -1778,7 +2077,7 @@ CREATE TABLE `tickets` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `tickets_ticket_number_unique` ON `tickets` (`ticket_number`);--> statement-breakpoint
-CREATE TABLE `transactions` (
+CREATE TABLE IF NOT EXISTS `transactions` (
 	`id` text PRIMARY KEY NOT NULL,
 	`date` text NOT NULL,
 	`description` text NOT NULL,
@@ -1788,7 +2087,7 @@ CREATE TABLE `transactions` (
 	`status` text NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `user_roles` (
+CREATE TABLE IF NOT EXISTS `user_roles` (
 	`id` text PRIMARY KEY NOT NULL,
 	`user_id` text NOT NULL,
 	`role_id` text NOT NULL,
@@ -1798,7 +2097,7 @@ CREATE TABLE `user_roles` (
 	FOREIGN KEY (`role_id`) REFERENCES `roles`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `users` (
+CREATE TABLE IF NOT EXISTS `users` (
 	`id` text PRIMARY KEY NOT NULL,
 	`username` text NOT NULL,
 	`password_hash` text NOT NULL,
@@ -1812,7 +2111,7 @@ CREATE TABLE `users` (
 --> statement-breakpoint
 CREATE UNIQUE INDEX `users_username_unique` ON `users` (`username`);--> statement-breakpoint
 CREATE UNIQUE INDEX `users_email_unique` ON `users` (`email`);--> statement-breakpoint
-CREATE TABLE `vendors` (
+CREATE TABLE IF NOT EXISTS `vendors` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`pic` text NOT NULL,
@@ -1823,3 +2122,7 @@ CREATE TABLE `vendors` (
 	`status` text DEFAULT 'Active' NOT NULL,
 	`created_at` text DEFAULT CURRENT_TIMESTAMP
 );
+--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS `roles_code_unique` ON `roles` (`code`);
+--> statement-breakpoint
+ALTER TABLE `invoices` ADD `version` integer DEFAULT 1 NOT NULL;

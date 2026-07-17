@@ -11,8 +11,16 @@ import { DependencyGraph } from '../components/OrgWorkspace/DependencyGraph';
 import { CEOView } from '../components/OrgWorkspace/CEOView';
 import { OrganizationHealth } from '../components/OrgWorkspace/OrganizationHealth';
 
+import { CreateOrganizationDialog } from '../components/OrgWorkspace/CreateOrganizationDialog.js';
 export function OrgWorkspaceView() {
-  const [activeTab, setActiveTab] = useState('executive');
+    const [activeTab, setActiveTab] = useState('executive');
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const handleCreateSuccess = () => {
+    setIsCreateOpen(false);
+    // Reload logic or trigger fetch tree
+    window.location.reload(); // Simple refresh for now
+  };
+
 
   return (
     <div className="flex-1 flex flex-col h-screen overflow-hidden bg-slate-50">
@@ -52,9 +60,11 @@ export function OrgWorkspaceView() {
               <Download className="w-4 h-4" />
               <span className="hidden sm:inline">Export</span>
             </button>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center gap-2">
+            <button 
+              onClick={() => setIsCreateOpen(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center gap-2">
               <Plus className="w-4 h-4" />
-              Quick Action
+              Create Organization
             </button>
           </div>
         </div>
@@ -134,7 +144,15 @@ export function OrgWorkspaceView() {
             <OrganizationHealth />
           </div>
         )}
-      </div>
+          </div>
+
+      {/* Dialogs */}
+      <CreateOrganizationDialog 
+        isOpen={isCreateOpen} 
+        onClose={() => setIsCreateOpen(false)} 
+        onSuccess={handleCreateSuccess} 
+      />
     </div>
   );
+
 }

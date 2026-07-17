@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Download, Plus, CheckCircle2, AlertCircle, Clock, Users, X } from 'lucide-react';
+import { EmployeeWorkspace } from '../components/EmployeeWorkspace';
 import { useAttendance, usePayroll, useEmployees } from '../data';
 import { HRTab } from '../types';
 import { cn } from '../lib/utils';
@@ -67,7 +68,7 @@ export function HRView() {
 
       <div className="flex-1 p-8 overflow-y-auto">
         {activeTab === 'overview' && <OverviewTab />}
-        {activeTab === 'directory' && <EmployeeDirectoryTab />}
+        {activeTab === 'directory' && <EmployeeWorkspace />}
         {activeTab === 'attendance' && <AttendanceTab />}
         {activeTab === 'payroll' && <PayrollTab />}
         {/* Other tabs can be implemented similarly */}
